@@ -72,6 +72,16 @@ Env vars are read lazily so `next build` needs no secrets. See `.env.example`.
 - Stock is taken when the order is created, so an abandoned payment holds stock. Add expiry/release in milestone 6.
 - Paystack test card: `4084 0840 8408 4081`, any future expiry, CVV `408` (see Paystack's docs if it changes).
 
+- **Email** (`server/email.service.ts`, `email-templates.ts`, `order-emails.ts`): Mailgun HTTP API over `fetch`
+  (`MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `MAILGUN_FROM`, optional `MAILGUN_BASE_URL` for the EU region). No keys: dev prints the
+  email, production skips it and checkout still works. The confirmation goes out **only for paid orders** (so typing a stranger's
+  address at checkout can't make us email them), **once**: `confirmation_sent_at` is claimed with a conditional update before
+  sending and released if sending fails, so a later callback/webhook retry sends it. A crash between claim and send loses it
+  (rare; find them with `status='confirmed' and confirmation_sent_at is not null` and no delivery in Mailgun logs).
+  Everything a buyer typed is HTML-escaped in the template. A Mailgun **sandbox** domain only delivers to recipients
+  authorised in the Mailgun dashboard; use a verified domain for real customers.
+- SQL that can't run in `npm test` (claims, confirm, stock) is verified on Neon inside a `do $$ ... raise exception` block so it rolls back.
+
 ## 6. Milestones
 
 ### ✅ Milestone 1: Foundation
@@ -80,7 +90,7 @@ Next.js + Tailwind + Vitest scaffold, Neon schema and seed, catalogue on `/`.
 Cart (client, persisted in localStorage), checkout form, `POST /api/orders` (transaction, server-side totals, order stays `pending`), order page.
 ### ✅ Milestone 3: Paystack payment (test mode)
 Initialize, redirect, verify on return, webhook, currency to NGN, order `pending` to `confirmed`, tests with stubbed `fetch` (wrong amount, already-confirmed, bad signature).
-### ⬜ Milestone 4: Confirmation emails
+### ✅ Milestone 4: Confirmation emails
 Mailgun `sendEmail()`, order confirmation template (HTML-escaped), tests with stubbed `fetch`.
 ### ⬜ Milestone 5: Accounts and Google sign-in
 Register/login, Google OAuth (Section 5 rules), my orders page.

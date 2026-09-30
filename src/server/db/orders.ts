@@ -125,3 +125,15 @@ export async function confirmOrder(id: string): Promise<boolean> {
     update orders set status = 'confirmed', paid_at = now() where id = ${id} and status = 'pending' returning id`
   return rows.length === 1
 }
+
+/** True for exactly one caller while no confirmation has been sent or is being sent. */
+export async function claimConfirmation(id: string): Promise<boolean> {
+  const rows = await sql()`
+    update orders set confirmation_sent_at = now()
+    where id = ${id} and status = 'confirmed' and confirmation_sent_at is null returning id`
+  return rows.length === 1
+}
+
+export async function releaseConfirmation(id: string): Promise<void> {
+  await sql()`update orders set confirmation_sent_at = null where id = ${id}`
+}

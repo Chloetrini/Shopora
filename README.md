@@ -16,3 +16,9 @@ Database: Neon Postgres. Apply `db/001_schema.sql`, then `db/002_seed_products.s
 Set `PAYSTACK_SECRET_KEY` to your **test** secret key (`sk_test_…`). In the Paystack dashboard set the webhook URL to
 `<APP_URL>/api/paystack/webhook`. Test card: `4084 0840 8408 4081`, any future expiry, CVV `408`.
 Apply `db/003_paystack.sql` after the first two SQL files.
+
+## Confirmation emails (Mailgun)
+
+Set `MAILGUN_API_KEY`, `MAILGUN_DOMAIN` and `MAILGUN_FROM` (`Shopora <orders@your-domain>`). A confirmation is emailed once, after
+payment succeeds. Without the keys, development prints the email to the terminal. With a Mailgun sandbox domain, add the
+recipient under Sending, Domain settings, Authorized recipients first.

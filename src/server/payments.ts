@@ -2,6 +2,7 @@ import 'server-only'
 import { randomBytes } from 'node:crypto'
 import { siteUrl } from '@/lib/site-url'
 import { confirmOrder, getOrderForPayment, setPaymentReference } from './db/orders'
+import { sendConfirmationOnce } from './order-emails'
 import { decidePayment, orderIdFromReference, type PaymentVerdict } from './payment-rules'
 import { initializeTransaction, verifyTransaction } from './paystack'
 
@@ -25,7 +26,7 @@ export type FinalizeResult = { orderId: string | null; verdict: PaymentVerdict |
 /**
  * Asks Paystack whether `reference` was paid, then confirms the order if the rules allow.
  * Safe to call repeatedly (callback + webhook race): the update only fires while the order is pending,
- * and `newlyConfirmed` is true for exactly one caller, which is who should send the email (milestone 4).
+ * and `newlyConfirmed` is true for exactly one caller. The confirmation email is sent once by `sendConfirmationOnce`.
  */
 export async function finalizePayment(reference: string): Promise<FinalizeResult & { newlyConfirmed: boolean }> {
   const orderId = orderIdFromReference(reference)
@@ -38,5 +39,8 @@ export async function finalizePayment(reference: string): Promise<FinalizeResult
     console.error('Paystack amount/currency mismatch', { orderId, expected: order.totalCents, got: paystack.amount })
   }
   const newlyConfirmed = verdict === 'confirm' ? await confirmOrder(orderId) : false
-  return { orderId, verdict: verdict === 'confirm' && !newlyConfirmed ? 'already_done' : verdict, newlyConfirmed }
+  const final = verdict === 'confirm' && !newlyConfirmed ? 'already_done' : verdict
+  // Also retried for already-confirmed orders whose email failed earlier (a later callback or webhook retry).
+  if (final === 'confirm' || final === 'already_done') await sendConfirmationOnce(orderId)
+  return { orderId, verdict: final, newlyConfirmed }
 }
