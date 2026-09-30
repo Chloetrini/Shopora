@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
-import { UserMenu } from '@/components/layout/user-menu'
 import { getSessionUser } from '@/server/current-user'
-import { CartLink } from '@/components/layout/cart-link'
+import { SiteFooter } from '@/components/layout/site-footer'
+import { SiteHeader } from '@/components/layout/site-header'
 import { SITE } from '@/constants/site'
 import './globals.css'
 
@@ -19,19 +18,17 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Fonts load from Google Fonts at view time; the stacks fall back to system fonts if they are blocked. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+        <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen font-sans antialiased">
-        <header className="border-b border-border bg-surface">
-          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-            <Link href="/" className="text-xl font-semibold">{SITE.name}</Link>
-            <div className="flex items-center gap-4">
-              <CartLink />
-              <UserMenu user={user} />
-            </div>
-          </div>
-        </header>
+        <SiteHeader user={user} />
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   )

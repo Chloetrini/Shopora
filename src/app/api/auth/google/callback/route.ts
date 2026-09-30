@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { safeNextPath } from '@/lib/safe-next'
 import { siteUrl } from '@/lib/site-url'
+import { claimGuestOrders } from '@/server/db/orders'
 import { fetchGoogleProfile, googleConfigured } from '@/server/google'
 import { resolveGoogleUser } from '@/server/google-account'
 import { allow, AUTH_LIMIT, clientIp } from '@/server/rate-limit'
@@ -28,6 +29,8 @@ export async function GET(req: NextRequest) {
     if (!profile.email_verified) return back('google_unverified')
 
     const user = await resolveGoogleUser(profile)
+    // Google verified this email, so earlier guest orders placed with it are now safely this account's.
+    await claimGuestOrders(user.id, user.email).catch((e) => console.error('claimGuestOrders failed', e))
     const res = to(safeNextPath(saved.next))
     res.cookies.set(SESSION_COOKIE, await sealSession({ uid: user.id, v: user.sessionVersion }), cookieOptions())
     res.cookies.set(OAUTH_COOKIE, '', { path: '/api/auth/google', maxAge: 0 })

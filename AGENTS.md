@@ -19,8 +19,12 @@ HMAC-SHA512 of the raw body with the secret key) is the backup if the buyer clos
 status is `success` AND the amount and currency match the order. Never trust the browser's word that it paid.
 Currency: Paystack test mode accepts NGN, so products move to `NGN` (kobo) in that milestone.
 
-Pages (planned): `/` catalogue, `/products/[slug]`, `/cart`, `/checkout`, `/orders/[id]` (confirmation),
-`/orders` (my orders), `/login`, `/register`.
+Pages: `/` (hero, categories, search, sort), `/products/[slug]`, `/cart`, `/checkout`, `/orders/[id]` (tracking timeline),
+`/orders` (my orders, signed in), `/track` (guest lookup), `/login`, `/register`, `/admin/orders` (admins only, else 404).
+
+**Guests vs signed in:** anyone can buy and is emailed. A guest follows an order with the link in the email or `/track`
+(email + order number). Signed-in users see every order in `/orders`. Signing in with **Google** also claims earlier guest
+orders placed with the same (Google-verified) email. Password sign-ups are never verified, so they never claim orders.
 
 ## 2. Stack
 
@@ -38,8 +42,8 @@ Done only when typecheck, lint, test and build all pass. Check UI at ~400px and 
 
 ## 4. Data (Neon project `shopora`, id `cool-voice-24183935`)
 
-SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`
-(all four are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
+SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`
+(all five are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
 Tables: `users`, `products`, `orders`, `order_items`. Money is **integer cents**, format only at the edge
 (`lib/money.ts`). `order_items` copies name and price at purchase time. Never build SQL by string
 concatenation: use the tagged template from `sql()` so values are parameters.
@@ -121,6 +125,28 @@ Register/login, Google OAuth (Section 5 rules), my orders page.
 ### ✅ Milestone 6: Ship (code done; deploy steps in Section 7)
 Vercel deploy, env vars, Google redirect URIs, health check, README.
 
+## 6b. Tracking, admin and look (added after milestone 6)
+
+- **Statuses** (`lib/order-status.ts`, tested): `pending` (unpaid), then paid: `confirmed` (payment received), `processing`, `shipped`,
+  `out_for_delivery`, `delivered`; plus `cancelled`. "Paid" means any of the five; use `isPaidStatus`, never `=== 'confirmed'`.
+  Admins move orders forward only (skipping is fine); anything not delivered can be cancelled (refunds are manual in Paystack).
+  Every change adds a row to `order_events` (the timeline); the update is conditional on the status that was read, so two clicks
+  apply once and email once. Emails go out for shipped, out for delivery, delivered, cancelled.
+- **Admin:** `ADMIN_EMAILS` (comma list). An admin must ALSO have a verified email, so admins sign in with Google; registering an
+  admin's address by password gives nothing. Non-admins get 404 from `/admin/*` and `/api/admin/*`. The admin page also has
+  "Send confirmation email", which returns Mailgun's exact error text (use it to diagnose email problems; needs no log access).
+- **Guest tracking:** `POST /api/orders/track` needs the email AND the first 8+ characters of the order id; one generic 404 otherwise; 20 per 15 min per IP.
+- **Look:** deep teal accent, midnight ink, Fraunces (headings) and Inter; light and dark via the `dark` class (toggle in the header,
+  key `shopora-theme`, pre-paint script in `app/layout.tsx`). The toggle renders both icons and lets CSS choose (no hydration mismatch).
+  No orange. Tokens live in `globals.css`; product drawings use their own palette (`lib/catalog.ts` TONES).
+- **Product images:** real photos are hotlinked from Unsplash (`products.image_url` =
+  `https://unsplash.com/photos/<id>/download?force=true&w=900`, found by search; NOT verified from the build sandbox, which blocks
+  Unsplash). `ProductImage` draws an illustration underneath and removes the photo if it fails, so a failed photo is never a broken box.
+  For a dependable site, download the photos and host them (Vercel Blob or `public/`), then update `image_url`.
+- **Real test order seen on the live site (30 Sep 2026):** Paystack test payment confirmed, Google account created, but the
+  confirmation email was NOT sent (`confirmation_sent_at` null). Find the cause with the admin "Send confirmation email" button
+  (likely: Mailgun sandbox recipient not authorised, or key/domain/from mismatch).
+
 ## 7. Deployment (Vercel)
 
 Environment variables (Project, Settings, Environment Variables; Production at least):
@@ -136,6 +162,7 @@ Environment variables (Project, Settings, Environment Variables; Production at l
 | `MAILGUN_FROM` | yes for email | `Shopora <orders@your-domain>` |
 | `MAILGUN_BASE_URL` | EU only | `https://api.eu.mailgun.net` |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | for Google sign-in | from Google Cloud Console |
+| `ADMIN_EMAILS` | for `/admin/orders` | your Google email(s), comma separated |
 
 Never set `DISABLE_RATE_LIMIT`. After deploy: open `/api/health`; set the Paystack webhook to `<APP_URL>/api/paystack/webhook`;
 add `<APP_URL>/api/auth/google/callback` to Google's authorized redirect URIs; place a test order with a Paystack test card.

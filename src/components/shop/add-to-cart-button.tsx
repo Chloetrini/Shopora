@@ -8,7 +8,7 @@ export function AddToCartButton({ product }: { product: Pick<Product, 'id' | 'na
   const { add } = useCart()
   const [added, setAdded] = useState(false)
   if (product.stock === 0) {
-    return <button disabled className="mt-3 w-full rounded-md border border-border px-3 py-2 text-sm text-muted-foreground">Sold out</button>
+    return <button disabled className="mt-3 w-full rounded-full border border-border px-4 py-2.5 text-sm text-muted-foreground">Sold out</button>
   }
   return (
     <button
@@ -18,7 +18,7 @@ export function AddToCartButton({ product }: { product: Pick<Product, 'id' | 'na
         setAdded(true)
         setTimeout(() => setAdded(false), 1500)
       }}
-      className="mt-3 w-full rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      className="mt-3 w-full rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90"
     >
       {added ? 'Added to cart' : 'Add to cart'}
     </button>

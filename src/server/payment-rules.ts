@@ -1,3 +1,5 @@
+import { isPaidStatus } from '@/lib/order-status'
+
 export type PaymentVerdict = 'confirm' | 'already_done' | 'not_paid' | 'mismatch'
 
 /**
@@ -9,7 +11,7 @@ export function decidePayment(
   order: { status: string; totalCents: number; currency: string },
   paystack: { status: string; amount: number; currency: string },
 ): PaymentVerdict {
-  if (order.status === 'confirmed') return 'already_done'
+  if (isPaidStatus(order.status)) return 'already_done'
   if (order.status !== 'pending') return 'not_paid'
   if (paystack.status !== 'success') return 'not_paid'
   if (paystack.amount !== order.totalCents || paystack.currency.toUpperCase() !== order.currency.toUpperCase()) {

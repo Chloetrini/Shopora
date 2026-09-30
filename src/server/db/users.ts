@@ -1,4 +1,5 @@
 import 'server-only'
+import { isAdminUser } from '../admin'
 import { sql } from './client'
 
 export type UserRecord = {
@@ -10,7 +11,7 @@ export type UserRecord = {
   emailVerified: boolean
   sessionVersion: number
 }
-export type PublicUser = { id: string; email: string; fullName: string }
+export type PublicUser = { id: string; email: string; fullName: string; isAdmin: boolean }
 
 export class EmailTakenError extends Error {
   constructor() {
@@ -30,7 +31,7 @@ const map = (r: any): UserRecord => ({
   sessionVersion: r.session_version,
 })
 
-export const toPublicUser = (u: UserRecord): PublicUser => ({ id: u.id, email: u.email, fullName: u.fullName })
+export const toPublicUser = (u: UserRecord): PublicUser => ({ id: u.id, email: u.email, fullName: u.fullName, isAdmin: isAdminUser(u) })
 
 const isUuid = (s: string) => /^[0-9a-f-]{36}$/i.test(s)
 

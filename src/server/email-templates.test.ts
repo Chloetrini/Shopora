@@ -15,6 +15,7 @@ const order: OrderView = {
     { name: 'Mug <b>', unitPriceCents: 1400000, quantity: 2 },
     { name: 'Tote', unitPriceCents: 400000, quantity: 1 },
   ],
+  events: [],
 }
 
 describe('orderConfirmationEmail', () => {
@@ -35,5 +36,26 @@ describe('orderConfirmationEmail', () => {
   })
   it('escapeHtml handles the five special characters', () => {
     expect(escapeHtml(`&<>"'`)).toBe('&amp;&lt;&gt;&quot;&#39;')
+  })
+})
+
+import { orderStatusEmail } from './email-templates'
+
+describe('orderStatusEmail', () => {
+  it('says what happened and links to the tracking page', () => {
+    const e = orderStatusEmail({ ...order, status: 'shipped' }, 'shipped', 'Courier: DHL 12345')
+    expect(e.subject).toContain('on its way')
+    expect(e.text).toContain('Courier: DHL 12345')
+    expect(e.text).toContain('/orders/4f0ecb8e-7b0c-4c39-9d0f-1f5a5b0f9d11')
+  })
+  it('escapes the note and the buyer name in the HTML', () => {
+    const e = orderStatusEmail(order, 'delivered', '<img src=x onerror=alert(1)>')
+    expect(e.html).not.toContain('<img')
+    expect(e.html).not.toContain('<script>')
+  })
+  it('has a message for every status that sends mail', () => {
+    for (const s of ['shipped', 'out_for_delivery', 'delivered', 'cancelled'] as const) {
+      expect(orderStatusEmail(order, s, null).subject.length).toBeGreaterThan(5)
+    }
   })
 })

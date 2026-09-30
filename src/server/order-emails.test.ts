@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const db = vi.hoisted(() => ({
+  markConfirmationSent: vi.fn(),
   claimConfirmation: vi.fn(),
   releaseConfirmation: vi.fn(),
   getOrder: vi.fn(),
@@ -9,7 +10,7 @@ const mail = vi.hoisted(() => ({ sendEmail: vi.fn() }))
 vi.mock('./db/orders', () => db)
 vi.mock('./email.service', () => mail)
 
-import { sendConfirmationOnce } from './order-emails'
+import { resendConfirmation, sendConfirmationOnce } from './order-emails'
 
 const order = {
   id: '4f0ecb8e-7b0c-4c39-9d0f-1f5a5b0f9d11', email: 'ada@example.com', fullName: 'Ada', status: 'confirmed',
@@ -54,5 +55,26 @@ describe('sendConfirmationOnce', () => {
     await sendConfirmationOnce(order.id)
     expect(mail.sendEmail).not.toHaveBeenCalled()
     expect(db.releaseConfirmation).toHaveBeenCalled()
+  })
+})
+
+describe('resendConfirmation (admin tool)', () => {
+  it('reports success and marks the order as emailed', async () => {
+    mail.sendEmail.mockResolvedValue('sent')
+    expect(await resendConfirmation(order.id)).toEqual({ ok: true, result: 'sent' })
+    expect(db.markConfirmationSent).toHaveBeenCalledWith(order.id)
+  })
+  it('returns the provider’s reason instead of hiding it', async () => {
+    mail.sendEmail.mockRejectedValue(new Error('Mailgun responded 403: Sandbox subdomains are for test purposes only'))
+    const r = await resendConfirmation(order.id)
+    expect(r).toEqual({ ok: false, error: 'Mailgun responded 403: Sandbox subdomains are for test purposes only' })
+    expect(db.markConfirmationSent).not.toHaveBeenCalled()
+  })
+  it('does not mark anything as sent when nothing was sent, and refuses unpaid orders', async () => {
+    mail.sendEmail.mockResolvedValue('skipped')
+    expect(await resendConfirmation(order.id)).toEqual({ ok: true, result: 'skipped' })
+    expect(db.markConfirmationSent).not.toHaveBeenCalled()
+    db.getOrder.mockResolvedValue({ ...order, status: 'pending' })
+    expect((await resendConfirmation(order.id)).ok).toBe(false)
   })
 })

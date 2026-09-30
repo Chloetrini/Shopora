@@ -15,7 +15,7 @@ Database: Neon Postgres. Apply `db/001_schema.sql`, then `db/002_seed_products.s
 
 Set `PAYSTACK_SECRET_KEY` to your **test** secret key (`sk_test_…`). In the Paystack dashboard set the webhook URL to
 `<APP_URL>/api/paystack/webhook`. Test card: `4084 0840 8408 4081`, any future expiry, CVV `408`.
-Apply `db/003_paystack.sql` and `db/004_auth.sql` after the first two SQL files.
+Apply `db/003_paystack.sql`, `db/004_auth.sql` and `db/005_tracking.sql` after the first two SQL files.
 
 ## Confirmation emails (Mailgun)
 
@@ -30,3 +30,9 @@ OAuth client ID, Web application. Add these Authorized redirect URIs exactly:
 `http://localhost:3000/api/auth/google/callback` and `https://<your-domain>/api/auth/google/callback`.
 Put the client id and secret in `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` and set `SESSION_SECRET` (32+ characters).
 While the consent screen is in "Testing", only the test users you list can sign in.
+
+## Order tracking and admin
+
+Buyers follow an order on `/orders/<id>` (link in their email), on `/track` (email + order number), or in My orders when signed in.
+Set `ADMIN_EMAILS` to your Google email, sign in with Google, and open `/admin/orders` to move orders through processing, shipped,
+out for delivery and delivered. Each of those (and cancel) emails the buyer.
