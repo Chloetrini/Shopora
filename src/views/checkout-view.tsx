@@ -19,7 +19,7 @@ const FIELDS = [
   { name: 'country', label: 'Country', autoComplete: 'country-name' },
 ] as const
 
-export function CheckoutView({ testMode }: { testMode: boolean }) {
+export function CheckoutView({ testMode, defaults }: { testMode: boolean; defaults: { email: string; fullName: string } | null }) {
   const router = useRouter()
   const { cart, clear } = useCart()
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -90,6 +90,7 @@ export function CheckoutView({ testMode }: { testMode: boolean }) {
               name={f.name}
               type={'type' in f ? f.type : 'text'}
               autoComplete={f.autoComplete}
+              defaultValue={defaults && (f.name === 'email' || f.name === 'fullName') ? defaults[f.name] : undefined}
               aria-invalid={!!errors[f.name]}
               aria-describedby={errors[f.name] ? `${f.name}-error` : undefined}
               className="mt-1 w-full rounded-md border border-border bg-surface px-3 py-2"

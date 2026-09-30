@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { UserMenu } from '@/components/layout/user-menu'
+import { getSessionUser } from '@/server/current-user'
 import { CartLink } from '@/components/layout/cart-link'
 import { SITE } from '@/constants/site'
 import './globals.css'
@@ -12,7 +14,8 @@ export const metadata: Metadata = {
 // Sets the theme before first paint so there is no flash. Key must match any future toggle.
 const themeScript = `try{var t=localStorage.getItem('shopora-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}`
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const user = await getSessionUser()
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -22,7 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="border-b border-border bg-surface">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
             <Link href="/" className="text-xl font-semibold">{SITE.name}</Link>
-            <CartLink />
+            <div className="flex items-center gap-4">
+              <CartLink />
+              <UserMenu user={user} />
+            </div>
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>

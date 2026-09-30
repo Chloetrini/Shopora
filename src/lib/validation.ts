@@ -28,3 +28,19 @@ export const orderSchema = z
   .strict()
 
 export type OrderInput = z.infer<typeof orderSchema>
+
+export const registerSchema = z
+  .object({
+    fullName: text('your full name', LIMITS.nameMax),
+    email: z.string().trim().toLowerCase().email('Enter a valid email address').max(254),
+    // bcrypt ignores everything past 72 bytes, so 72 is the honest maximum.
+    password: z.string().min(8, 'Use at least 8 characters').max(72, 'Use at most 72 characters'),
+  })
+  .strict()
+
+export const loginSchema = z
+  .object({
+    email: z.string().trim().toLowerCase().email('Enter a valid email address').max(254),
+    password: z.string().min(1, 'Enter your password').max(72),
+  })
+  .strict()

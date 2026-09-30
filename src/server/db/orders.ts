@@ -14,7 +14,7 @@ export class OutOfStockError extends Error {
  * inactive or short on stock, `ok` is false and nothing is written. Two buyers racing for the last
  * unit: the second `stock >= 0` check constraint fails and the whole statement rolls back.
  */
-export async function createOrder(input: OrderInput): Promise<{ id: string }> {
+export async function createOrder(input: OrderInput, userId: string | null = null): Promise<{ id: string }> {
   const items = JSON.stringify(input.items.map((i) => ({ product_id: i.productId, quantity: i.quantity })))
   try {
     const rows = await sql()`
@@ -33,9 +33,9 @@ export async function createOrder(input: OrderInput): Promise<{ id: string }> {
            and (select count(*) from req) > 0 as ok
       ),
       new_order as (
-        insert into orders (email, full_name, address_line1, address_line2, city, region, postal_code, country,
+        insert into orders (user_id, email, full_name, address_line1, address_line2, city, region, postal_code, country,
                             total_cents, currency)
-        select ${input.email}, ${input.fullName}, ${input.addressLine1}, nullif(${input.addressLine2}, ''),
+        select ${userId}::uuid, ${input.email}, ${input.fullName}, ${input.addressLine1}, nullif(${input.addressLine2}, ''),
                ${input.city}, nullif(${input.region}, ''), ${input.postalCode}, ${input.country},
                (select sum(price_cents * quantity) from lines)::int, (select min(currency) from lines)
         from ok where ok.ok
@@ -136,4 +136,18 @@ export async function claimConfirmation(id: string): Promise<boolean> {
 
 export async function releaseConfirmation(id: string): Promise<void> {
   await sql()`update orders set confirmation_sent_at = null where id = ${id}`
+}
+
+export type OrderSummary = { id: string; status: string; totalCents: number; currency: string; createdAt: string; itemCount: number }
+
+/** The signed-in buyer's own orders. `userId` comes from the session cookie, never from the request. */
+export async function listOrdersForUser(userId: string): Promise<OrderSummary[]> {
+  const rows = await sql()`
+    select o.id, o.status, o.total_cents, o.currency, o.created_at,
+           coalesce((select sum(quantity) from order_items i where i.order_id = o.id), 0)::int as item_count
+    from orders o where o.user_id = ${userId} order by o.created_at desc limit 50`
+  return rows.map((o) => ({
+    id: o.id, status: o.status, totalCents: o.total_cents, currency: o.currency,
+    createdAt: new Date(o.created_at).toISOString(), itemCount: o.item_count,
+  }))
 }

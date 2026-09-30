@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { orderSchema } from '@/lib/validation'
+import { getRequestUser } from '@/server/current-user'
 import { createOrder, OutOfStockError } from '@/server/db/orders'
 import { startPayment } from '@/server/payments'
 import { paystackConfigured } from '@/server/paystack'
@@ -23,7 +24,9 @@ export async function POST(req: NextRequest) {
     )
   }
   try {
-    const { id } = await createOrder(parsed.data)
+    // Signed in: the order belongs to the session's user. The id is never read from the request.
+    const user = await getRequestUser(req)
+    const { id } = await createOrder(parsed.data, user?.id ?? null)
     // If Paystack is down or not configured the order is still saved; the order page offers "Pay now".
     let paymentUrl: string | null = null
     if (paystackConfigured()) {

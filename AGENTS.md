@@ -38,8 +38,8 @@ Done only when typecheck, lint, test and build all pass. Check UI at ~400px and 
 
 ## 4. Data (Neon project `shopora`, id `cool-voice-24183935`)
 
-SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`
-(all three are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
+SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`
+(all four are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
 Tables: `users`, `products`, `orders`, `order_items`. Money is **integer cents**, format only at the edge
 (`lib/money.ts`). `order_items` copies name and price at purchase time. Never build SQL by string
 concatenation: use the tagged template from `sql()` so values are parameters.
@@ -82,6 +82,24 @@ Env vars are read lazily so `next build` needs no secrets. See `.env.example`.
   authorised in the Mailgun dashboard; use a verified domain for real customers.
 - SQL that can't run in `npm test` (claims, confirm, stock) is verified on Neon inside a `do $$ ... raise exception` block so it rolls back.
 
+- **Accounts** (`server/session.ts`, `current-user.ts`, `password.ts`, `db/users.ts`): encrypted httpOnly cookie `shopora_session`
+  = `{ uid, v }` (iron-session `sealData`, 30 days). `v` is `users.session_version`; a mismatch means signed out. The user id
+  comes ONLY from that cookie (`getSessionUser` in pages, `getRequestUser` in routes), never from a body, query or param.
+  Passwords: bcrypt cost 12, 8 to 72 chars, one generic "Wrong email or password" (also for Google-only accounts), a dummy
+  compare when the email is unknown. Login/register/Google are rate limited 10 per 15 min per IP (in memory, best effort).
+- **Decisions:** no email verification for password sign-ups (`email_verified=false`), and no forgot-password yet (both are
+  hardening candidates). Because of that, register says "an account with this email already exists" (it does reveal that).
+  The unverified flag matters for Google: linking to an unverified password account **discards its password and bumps
+  `session_version`**, so the person who pre-registered someone else's address is locked out.
+- **Google** (`server/google.ts`, `google-account.ts`, `api/auth/google/*`): authorization code + PKCE + `state` (kept in the
+  sealed `shopora_oauth` cookie, 10 min, sameSite lax), no auth library. Only `email_verified: true` is trusted. Lookup order: Google id,
+  then email (link), else create a verified account with no password. Redirect URI (exact, in Google Cloud Console):
+  `<APP_URL>/api/auth/google/callback` (and `http://localhost:3000/api/auth/google/callback` for dev). Failures redirect to
+  `/login?error=<code>`. The login/register pages are `force-dynamic` so the Google button follows the env vars.
+- **Orders belong to users:** a signed-in checkout stamps `orders.user_id` from the session; `/orders` lists only
+  `where user_id = <session user>`. Guests still get `/orders/[id]` by unguessable id. Guest orders are NOT attached to an
+  account later (even with the same email), because the email was never verified.
+
 ## 6. Milestones
 
 ### ✅ Milestone 1: Foundation
@@ -92,7 +110,7 @@ Cart (client, persisted in localStorage), checkout form, `POST /api/orders` (tra
 Initialize, redirect, verify on return, webhook, currency to NGN, order `pending` to `confirmed`, tests with stubbed `fetch` (wrong amount, already-confirmed, bad signature).
 ### ✅ Milestone 4: Confirmation emails
 Mailgun `sendEmail()`, order confirmation template (HTML-escaped), tests with stubbed `fetch`.
-### ⬜ Milestone 5: Accounts and Google sign-in
+### ✅ Milestone 5: Accounts and Google sign-in
 Register/login, Google OAuth (Section 5 rules), my orders page.
 ### ⬜ Milestone 6: Ship
 Vercel deploy, env vars, Google redirect URIs, health check, README.
