@@ -59,3 +59,22 @@ describe('checkBrevo', () => {
     expect(JSON.stringify(r)).not.toContain('SECRET')
   })
 })
+
+describe('checkMailgun shows what is set (never the key)', () => {
+  it('reports the domain it sees and flags a value that is not a sandbox name', async () => {
+    const r = await checkMailgun({ ...env, MAILGUN_DOMAIN: 'sandbox9975.mailgun.org "', MAILGUN_FROM: 'Shopora <me@gmail.com>' }, reply(401))
+    expect(r.seenDomain).toBe('sandbox9975.mailgun.org "')
+    expect(r.seenSenderDomain).toBe('gmail.com')
+    expect(r.problems.join(' ')).toContain('quote or a space')
+    expect(JSON.stringify(r)).not.toContain('SECRET123')
+  })
+  it('flags a web address used as the domain', async () => {
+    const r = await checkMailgun({ ...env, MAILGUN_DOMAIN: 'https://app.mailgun.com/mg/sending/x' }, reply(401))
+    expect(r.problems.join(' ')).toContain('not a web address')
+  })
+  it('has no problems for correct values', async () => {
+    const r = await checkMailgun(env, reply(200, { domain: { state: 'active' } }))
+    expect(r.problems).toEqual([])
+    expect(r.seenDomain).toBe(env.MAILGUN_DOMAIN)
+  })
+})

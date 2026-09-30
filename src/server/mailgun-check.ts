@@ -6,6 +6,10 @@ export type MailgunCheck = {
   kind: 'sandbox' | 'custom' | 'unknown'
   state: string
   sender: 'matches the domain' | 'different domain' | 'missing'
+  /** What is set, so a typo is visible. The domain and the sender's domain are not secrets; the key never appears. */
+  seenDomain: string
+  seenSenderDomain: string
+  problems: string[]
   hint: string
 }
 
@@ -20,10 +24,21 @@ export async function checkMailgun(env: Env, fetchImpl: typeof fetch = fetch): P
   const base = (env.MAILGUN_BASE_URL || 'https://api.mailgun.net').replace(/\/+$/, '')
   const missing = [!key && 'MAILGUN_API_KEY', !domain && 'MAILGUN_DOMAIN', !from && 'MAILGUN_FROM'].filter(Boolean)
   const kind = !domain ? 'unknown' : /^sandbox[0-9a-f]+\.mailgun\.org$/i.test(domain) ? 'sandbox' : 'custom'
+  const seenDomain = domain ?? ''
+  const seenSenderDomain = from ? (/@([^>\s]+)/.exec(from)?.[1] ?? '(no @ found)') : ''
+  const problems: string[] = []
+  if (domain) {
+    if (/^https?:/i.test(domain) || domain.includes('/')) problems.push('MAILGUN_DOMAIN must be only the domain name, not a web address.')
+    if (/["'\s]/.test(domain)) problems.push('MAILGUN_DOMAIN contains a quote or a space. Paste it with nothing around it.')
+    if (!/^[a-z0-9.-]+$/i.test(domain.replace(/["'\s]/g, ''))) problems.push('MAILGUN_DOMAIN has characters a domain cannot contain.')
+    if (kind === 'custom' && /^sandbox/i.test(domain)) problems.push('This starts with "sandbox" but is not a full sandbox name. It should look like sandbox<letters and numbers>.mailgun.org.')
+    if (kind === 'custom' && !/\./.test(domain)) problems.push('MAILGUN_DOMAIN has no dot. It should end in .mailgun.org for a sandbox.')
+  }
+  if (from && !/@/.test(from)) problems.push('MAILGUN_FROM has no email address in it.')
   const sender = !from ? 'missing' : domain && from.toLowerCase().includes(`@${domain.toLowerCase()}`) ? 'matches the domain' : 'different domain'
 
   if (missing.length > 0 || !key || !domain) {
-    return { apiKey: 'unchecked', domain: 'unchecked', kind, state: 'unknown', sender, hint: `Not set in Vercel: ${missing.join(', ')}. Add them and redeploy.` }
+    return { apiKey: 'unchecked', domain: 'unchecked', kind, state: 'unknown', sender, seenDomain, seenSenderDomain, problems, hint: `Not set in Vercel: ${missing.join(', ')}. Add them and redeploy.` }
   }
   let res: Response
   try {
@@ -32,16 +47,16 @@ export async function checkMailgun(env: Env, fetchImpl: typeof fetch = fetch): P
       cache: 'no-store',
     })
   } catch {
-    return { apiKey: 'unchecked', domain: 'unchecked', kind, state: 'unknown', sender, hint: 'Could not reach Mailgun from the server. Try again in a minute.' }
+    return { apiKey: 'unchecked', domain: 'unchecked', kind, state: 'unknown', sender, seenDomain, seenSenderDomain, problems, hint: 'Could not reach Mailgun from the server. Try again in a minute.' }
   }
   if (res.status === 401 || res.status === 403) {
-    return { apiKey: 'rejected', domain: 'unchecked', kind, state: 'unknown', sender, hint: 'Mailgun rejected the API key. Create a new Private API key in Mailgun (API keys) and update MAILGUN_API_KEY in Vercel. If your account is in the EU, also set MAILGUN_BASE_URL to https://api.eu.mailgun.net.' }
+    return { apiKey: 'rejected', domain: 'unchecked', kind, state: 'unknown', sender, seenDomain, seenSenderDomain, problems, hint: 'Mailgun rejected the API key. Causes, most likely first: the key was copied with a space or quote around it; it is a sending key or a different kind of key (use an account Private API key from API security); it was deleted; or the account is in the EU (then also set MAILGUN_BASE_URL to https://api.eu.mailgun.net). Create a fresh Private API key, paste it with nothing around it, and redeploy.' }
   }
   if (res.status === 404) {
-    return { apiKey: 'valid', domain: 'not found', kind, state: 'unknown', sender, hint: 'The key works but Mailgun has no domain with that name on this account or region. Check MAILGUN_DOMAIN spelling, or set MAILGUN_BASE_URL to https://api.eu.mailgun.net if the account is EU.' }
+    return { apiKey: 'valid', domain: 'not found', kind, state: 'unknown', sender, seenDomain, seenSenderDomain, problems, hint: 'The key works but Mailgun has no domain with that name on this account or region. Check MAILGUN_DOMAIN spelling, or set MAILGUN_BASE_URL to https://api.eu.mailgun.net if the account is EU.' }
   }
   if (!res.ok) {
-    return { apiKey: 'valid', domain: 'unchecked', kind, state: `http ${res.status}`, sender, hint: `Mailgun answered ${res.status}. Try again shortly.` }
+    return { apiKey: 'valid', domain: 'unchecked', kind, state: `http ${res.status}`, sender, seenDomain, seenSenderDomain, problems, hint: `Mailgun answered ${res.status}. Try again shortly.` }
   }
   const json = (await res.json().catch(() => null)) as { domain?: { state?: string } } | null
   const state = json?.domain?.state ?? 'unknown'
@@ -50,7 +65,7 @@ export async function checkMailgun(env: Env, fetchImpl: typeof fetch = fetch): P
   if (kind === 'sandbox') hints.push('This is a sandbox domain: Mailgun only delivers to addresses listed under Authorized recipients (and each must click the confirmation link Mailgun emails them). Add the buyer’s email there, or verify your own domain to send to anyone.')
   if (sender !== 'matches the domain') hints.push(`MAILGUN_FROM should use an address on ${domain}, for example Shopora <postmaster@${domain}>.`)
   if (hints.length === 0) hints.push('Key, domain and sender look right. If emails still do not arrive, open Mailgun, Sending, Logs to see why a message was rejected.')
-  return { apiKey: 'valid', domain: 'found', kind, state, sender, hint: hints.join(' ') }
+  return { apiKey: 'valid', domain: 'found', kind, state, sender, seenDomain, seenSenderDomain, problems, hint: hints.join(' ') }
 }
 
 export type BrevoCheck = { configured: boolean; apiKey: 'valid' | 'rejected' | 'unchecked'; sender: 'verified in Brevo' | 'not a verified Brevo sender' | 'unchecked'; hint: string }
