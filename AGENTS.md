@@ -10,8 +10,14 @@ Shopora is a small online shop (HNG15 Lesson 2 individual task): browse products
 check out, persist everything in a database, email an order confirmation, sign in with Google.
 The product name lives in one place, `src/constants/site.ts`.
 
-**Payment decision:** checkout saves the order and emails a confirmation. **No real payment is taken.**
-Stripe (test mode) is an optional later milestone. Never label the UI as if money moved.
+**Payment decision:** **Paystack in test mode** (test secret key `sk_test_…`, test cards only). No real money moves,
+and the UI must say "Test mode" while the key starts with `sk_test_`. Flow: the server creates the order as
+`pending`, calls Paystack `transaction/initialize` (amount in the smallest unit, a unique `reference` = order id),
+redirects the buyer to Paystack, then on return **verifies** the reference server-side (`transaction/verify`)
+before marking the order `confirmed` and sending the email. A Paystack webhook (`x-paystack-signature`,
+HMAC-SHA512 of the raw body with the secret key) is the backup if the buyer closes the tab. Confirm only when
+status is `success` AND the amount and currency match the order. Never trust the browser's word that it paid.
+Currency: Paystack test mode accepts NGN, so products move to `NGN` (kobo) in that milestone.
 
 Pages (planned): `/` catalogue, `/products/[slug]`, `/cart`, `/checkout`, `/orders/[id]` (confirmation),
 `/orders` (my orders), `/login`, `/register`.
@@ -19,7 +25,7 @@ Pages (planned): `/` catalogue, `/products/[slug]`, `/cart`, `/checkout`, `/orde
 ## 2. Stack
 
 Next.js 16 (App Router), TypeScript strict (~5.9), React 19, Tailwind v4, zod v4, Vitest,
-**Neon Postgres** via `@neondatabase/serverless`, **Mailgun** (HTTP API over `fetch`, no SDK),
+**Neon Postgres** via `@neondatabase/serverless`, **Mailgun** (HTTP API over `fetch`, no SDK), **Paystack** (HTTP API over `fetch`),
 Google OAuth (authorization code + PKCE, no auth library), hosting on Vercel. Same conventions as the
 sibling project Taskora (thin `page.tsx`, server code under `src/server`, `@/` imports, kebab-case files).
 
@@ -52,11 +58,12 @@ Env vars are read lazily so `next build` needs no secrets. See `.env.example`.
 ### ✅ Milestone 1: Foundation
 Next.js + Tailwind + Vitest scaffold, Neon schema and seed, catalogue on `/`.
 ### ⬜ Milestone 2: Cart and checkout
-Cart (client, persisted in localStorage), checkout form, `POST /api/orders` (transaction, server-side totals), confirmation page.
-### ⬜ Milestone 3: Confirmation emails
+Cart (client, persisted in localStorage), checkout form, `POST /api/orders` (transaction, server-side totals, order stays `pending`), order page.
+### ⬜ Milestone 3: Paystack payment (test mode)
+Initialize, redirect, verify on return, webhook, currency to NGN, order `pending` to `confirmed`, tests with stubbed `fetch` (wrong amount, already-confirmed, bad signature).
+### ⬜ Milestone 4: Confirmation emails
 Mailgun `sendEmail()`, order confirmation template (HTML-escaped), tests with stubbed `fetch`.
-### ⬜ Milestone 4: Accounts and Google sign-in
+### ⬜ Milestone 5: Accounts and Google sign-in
 Register/login, Google OAuth (Section 5 rules), my orders page.
-### ⬜ Milestone 5: Ship
+### ⬜ Milestone 6: Ship
 Vercel deploy, env vars, Google redirect URIs, health check, README.
-### ⬜ Optional: Stripe test-mode payments
