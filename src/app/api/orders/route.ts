@@ -1,0 +1,33 @@
+import { NextResponse, type NextRequest } from 'next/server'
+import { orderSchema } from '@/lib/validation'
+import { createOrder, OutOfStockError } from '@/server/db/orders'
+
+export async function POST(req: NextRequest) {
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ success: false, message: 'Invalid JSON' }, { status: 400 })
+  }
+  const parsed = orderSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Validation failed',
+        details: parsed.error.issues.map((i) => ({ path: i.path.join('.'), message: i.message })),
+      },
+      { status: 400 },
+    )
+  }
+  try {
+    const { id } = await createOrder(parsed.data)
+    return NextResponse.json({ success: true, message: 'Order placed', body: { id } }, { status: 201 })
+  } catch (e) {
+    if (e instanceof OutOfStockError) {
+      return NextResponse.json({ success: false, message: e.message, code: 'out_of_stock' }, { status: 409 })
+    }
+    console.error('createOrder failed', e)
+    return NextResponse.json({ success: false, message: 'Could not place the order. Try again.' }, { status: 500 })
+  }
+}

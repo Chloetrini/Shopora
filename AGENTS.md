@@ -53,11 +53,21 @@ Env vars are read lazily so `next build` needs no secrets. See `.env.example`.
 - Emails go through one `sendEmail()`; in dev without Mailgun keys it prints to the terminal;
   in production without keys checkout still succeeds and the order records `confirmation_sent_at = null`.
 
+- **Cart** is client-only (`hooks/use-cart.ts`, localStorage key `shopora-cart`, `useSyncExternalStore` with a stable snapshot).
+  Cart lines are a display snapshot; `POST /api/orders` takes only `{ productId, quantity }` plus the buyer's details
+  (`orderSchema` is `.strict()`, so a client-sent price or total is rejected) and re-reads prices from `products`.
+- `createOrder` (`server/db/orders.ts`) is one CTE statement: order + lines + stock decrement all-or-nothing; any line
+  missing/inactive/short makes it write nothing (409 `out_of_stock`). Verified against real Neon by a test that
+  rolls back (`raise exception` at the end). SQL can't run in `npm test`; re-check it that way if it changes.
+- Guest orders: `/orders/[id]` is reachable by the unguessable UUID alone (noindex, no-referrer). Milestone 5 adds
+  ownership for signed-in users.
+- No rate limit on `POST /api/orders` yet (Milestone 6 hardening).
+
 ## 6. Milestones
 
 ### ✅ Milestone 1: Foundation
 Next.js + Tailwind + Vitest scaffold, Neon schema and seed, catalogue on `/`.
-### ⬜ Milestone 2: Cart and checkout
+### ✅ Milestone 2: Cart and checkout
 Cart (client, persisted in localStorage), checkout form, `POST /api/orders` (transaction, server-side totals, order stays `pending`), order page.
 ### ⬜ Milestone 3: Paystack payment (test mode)
 Initialize, redirect, verify on return, webhook, currency to NGN, order `pending` to `confirmed`, tests with stubbed `fetch` (wrong amount, already-confirmed, bad signature).

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { CartLink } from '@/components/layout/cart-link'
 import { SITE } from '@/constants/site'
 import './globals.css'
 
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="border-b border-border bg-surface">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
             <Link href="/" className="text-xl font-semibold">{SITE.name}</Link>
+            <CartLink />
           </div>
         </header>
         <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
