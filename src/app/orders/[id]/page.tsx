@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
+import { CancelOrderButton } from '@/components/shop/cancel-order-button'
 import { OrderTimeline } from '@/components/shop/order-timeline'
 import { PayButton } from '@/components/shop/pay-button'
 import { STATUS_LABEL } from '@/lib/order-status'
@@ -47,6 +48,10 @@ export default async function OrderPage({
           ) : (
             <p className="mt-3 text-sm text-muted-foreground">Payments aren’t set up on this site yet, so nothing has been charged.</p>
           ))}
+        {order.status === 'pending' && <CancelOrderButton orderId={order.id} />}
+        {order.status === 'cancelled' && order.events.some((e) => e.note?.includes('Refund needed')) && (
+          <p role="status" className="mt-3 rounded-xl border border-border bg-primary-soft p-3 text-sm">We received a payment after this order was cancelled. We will refund it, and you will get an email when we do.</p>
+        )}
 
         <h2 className="font-display mt-10 text-xl font-semibold">Tracking</h2>
         <div className="mt-4 rounded-2xl border border-border bg-surface p-5">
@@ -75,6 +80,18 @@ export default async function OrderPage({
             </li>
           ))}
         </ul>
+        {order.deliveryZone && (
+          <p className="mt-3 flex justify-between border-t border-border pt-3 text-sm">
+            <span>Delivery ({order.deliveryZone})</span>
+            <span>{order.deliveryCents > 0 ? formatMoney(order.deliveryCents, order.currency) : 'Free'}</span>
+          </p>
+        )}
+        {order.discountCents > 0 && (
+          <p className="mt-3 flex justify-between border-t border-border pt-3 text-sm">
+            <span>Discount{order.discountCode ? ` (${order.discountCode})` : ''}</span>
+            <span>-{formatMoney(order.discountCents, order.currency)}</span>
+          </p>
+        )}
         <p className="mt-3 flex justify-between border-t border-border pt-3 text-lg font-semibold">
           <span>Total</span>
           <span>{formatMoney(order.totalCents, order.currency)}</span>

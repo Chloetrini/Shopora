@@ -25,6 +25,8 @@ export function orderConfirmationEmail(order: OrderView) {
     '',
     `Order ${ref}`,
     ...lines.map((l) => `${l.label}: ${l.amount}`),
+    ...(order.discountCents > 0 ? [`Discount${order.discountCode ? ` (${order.discountCode})` : ''}: -${formatMoney(order.discountCents, order.currency)}`] : []),
+    ...(order.deliveryCents > 0 ? [`Delivery${order.deliveryZone ? ` (${order.deliveryZone})` : ''}: ${formatMoney(order.deliveryCents, order.currency)}`] : order.deliveryZone ? [`Delivery (${order.deliveryZone}): Free`] : []),
     `Total: ${total}`,
     '',
     `Shipping to: ${order.address}`,
@@ -37,6 +39,8 @@ export function orderConfirmationEmail(order: OrderView) {
 <p>We've received your payment. Order <strong>${escapeHtml(ref)}</strong>.</p>
 <table style="width:100%;border-collapse:collapse">
 ${lines.map((l) => `<tr><td style="padding:6px 0;border-bottom:1px solid #e4e0d6">${escapeHtml(l.label)}</td><td style="padding:6px 0;border-bottom:1px solid #e4e0d6;text-align:right">${escapeHtml(l.amount)}</td></tr>`).join('\n')}
+${order.discountCents > 0 ? `<tr><td style="padding:6px 0;border-bottom:1px solid #e4e0d6">Discount${order.discountCode ? ` (${escapeHtml(order.discountCode)})` : ''}</td><td style="padding:6px 0;border-bottom:1px solid #e4e0d6;text-align:right">-${escapeHtml(formatMoney(order.discountCents, order.currency))}</td></tr>` : ''}
+${order.deliveryZone ? `<tr><td style="padding:6px 0;border-bottom:1px solid #e4e0d6">Delivery (${escapeHtml(order.deliveryZone)})</td><td style="padding:6px 0;border-bottom:1px solid #e4e0d6;text-align:right">${order.deliveryCents > 0 ? escapeHtml(formatMoney(order.deliveryCents, order.currency)) : 'Free'}</td></tr>` : ''}
 <tr><td style="padding:8px 0"><strong>Total</strong></td><td style="padding:8px 0;text-align:right"><strong>${escapeHtml(total)}</strong></td></tr>
 </table>
 <p>Shipping to: ${escapeHtml(order.address)}</p>
@@ -67,4 +71,27 @@ ${note ? `<p style="background:#f1f5f4;padding:10px;border-radius:6px">${escapeH
 <p><a href="${escapeHtml(link)}">Track your order</a></p>
 </body></html>`
   return { subject: `Your ${SITE.name} order ${ref} ${copy.subject}`, text, html }
+}
+
+export function backInStockEmail(name: string, slug: string) {
+  const link = `${siteUrl()}/products/${encodeURIComponent(slug)}`
+  const text = [`Good news: ${name} is back in stock.`, '', `Get it here: ${link}`, '', 'You asked us to tell you, so this is the only email about it.'].join('\n')
+  const html = `<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#14171f;max-width:520px;margin:0 auto;padding:16px">
+<h1 style="font-size:20px">${escapeHtml(name)} is back in stock</h1>
+<p>You asked us to tell you when it returned. It may sell out again, so grab it while you can.</p>
+<p><a href="${escapeHtml(link)}">View ${escapeHtml(name)}</a></p>
+</body></html>`
+  return { subject: `${name} is back in stock at ${SITE.name}`, text, html }
+}
+
+export function lowStockEmail(items: { name: string; stock: number }[]) {
+  const lines = items.map((i) => `${i.name}: ${i.stock} left`)
+  const link = `${siteUrl()}/admin/products`
+  const text = ['These products are running low:', '', ...lines, '', `Restock them: ${link}`].join('\n')
+  const html = `<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#14171f;max-width:520px;margin:0 auto;padding:16px">
+<h1 style="font-size:20px">Running low</h1>
+<ul>${items.map((i) => `<li>${escapeHtml(i.name)}: <strong>${i.stock}</strong> left</li>`).join('')}</ul>
+<p><a href="${escapeHtml(link)}">Manage stock</a></p>
+</body></html>`
+  return { subject: `Low stock: ${items.map((i) => i.name).join(', ')}`.slice(0, 120), text, html }
 }

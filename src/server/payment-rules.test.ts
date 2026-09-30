@@ -17,7 +17,9 @@ describe('decidePayment', () => {
   it('is a no-op when already confirmed, and never revives a cancelled order', () => {
     expect(decidePayment({ ...order, status: 'confirmed' }, paid)).toBe('already_done')
     expect(decidePayment({ ...order, status: 'shipped' }, paid)).toBe('already_done')
-    expect(decidePayment({ ...order, status: 'cancelled' }, paid)).toBe('not_paid')
+    expect(decidePayment({ ...order, status: 'cancelled' }, paid)).toBe('late_payment')
+    expect(decidePayment({ ...order, status: 'cancelled' }, { ...paid, amount: 1 })).toBe('mismatch')
+    expect(decidePayment({ ...order, status: 'cancelled' }, { ...paid, status: 'abandoned' })).toBe('not_paid')
   })
 })
 

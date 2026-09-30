@@ -42,8 +42,8 @@ Done only when typecheck, lint, test and build all pass. Check UI at ~400px and 
 
 ## 4. Data (Neon project `shopora`, id `cool-voice-24183935`)
 
-SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`
-(all five are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
+SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`, `006_features.sql`, `007_delivery.sql`
+(all seven are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
 Tables: `users`, `products`, `orders`, `order_items`. Money is **integer cents**, format only at the edge
 (`lib/money.ts`). `order_items` copies name and price at purchase time. Never build SQL by string
 concatenation: use the tagged template from `sql()` so values are parameters.
@@ -147,6 +147,33 @@ Vercel deploy, env vars, Google redirect URIs, health check, README.
   confirmation email was NOT sent (`confirmation_sent_at` null). Find the cause with the admin "Send confirmation email" button
   (likely: Mailgun sandbox recipient not authorised, or key/domain/from mismatch).
 
+## 6c. Extra features (all built, SQL verified on Neon with rollback tests)
+
+- **Delivery fees** (`lib/delivery.ts`, tested; `delivery_zones`): fee by country and state. Match order: exact state, then the whole
+  country, then the `*` zone ("everywhere else"); no match means "we don't deliver there" (409, nothing written, no discount burned).
+  Country/region are normalised (`Lagos State` = `lagos`, `NG` = `nigeria`, `FCT` = `abuja`). Free delivery over a threshold is judged on goods
+  AFTER the discount. The fee is added to `total_cents` inside `createOrder`, so Paystack charges it. Zones are edited at `/admin/delivery`;
+  checkout shows the fee live as the buyer types (the server re-computes it).
+- **Discount codes** (`lib/discount.ts`, `discount_codes`): percent or fixed amount, optional max uses and expiry, claimed by a conditional UPDATE
+  inside the order statement (two buyers can't both take the last use); an order never drops below ₦50 of goods. Delivery is never discounted.
+  `lib/discount.ts` and the SQL mirror each other: change both together. Admin: `/admin/discounts`.
+- **Wishlist** (`wishlist_items`, signed in), **reviews** (`reviews`; only customers with a PAID order containing the product; one per person,
+  author shown as "Ada L."), **saved addresses** (`addresses`, max 5, default, prefilled at checkout, optional "save this address"),
+  all tenant-owned: every query is scoped by the session user, another user's id is a 404.
+- **Cancel an unpaid order** (`POST /api/orders/[id]/cancel`): only `pending`; gives the stock and the discount use back in one statement.
+  **Stock release:** unpaid orders older than 24 h are cancelled the same way (lazily on each new order, and daily by Vercel Cron,
+  `vercel.json`, which needs `CRON_SECRET`). A payment that arrives for an already cancelled order is flagged ("Paid after cancel: refund
+  needed" in `/admin/orders`) and never revives the order (`decidePayment` returns `late_payment`).
+- **Stock alerts:** "Email me when it's back" on sold-out products; restocking in `/admin/products` (or a cancelled order returning stock)
+  emails each subscriber once. Admins (`ADMIN_EMAILS`) are emailed when an order drops a product to 5 or fewer.
+- **Self-hosted photos:** `/admin/products` uploads a JPG/PNG/WebP (under 1.5 MB, type decided from the bytes) stored as base64 in
+  `products.image_b64` and served from `/api/products/<slug>/image?v=`; this replaces the Unsplash hotlink for that product.
+- **Email diagnosis:** `GET /api/health?check=email` asks Mailgun about the configured domain (read-only, no secrets, 5 per 15 min per IP)
+  and explains the result; the admin "Send confirmation email" button shows Mailgun's exact error. Both live orders so far were paid but
+  the confirmation was never sent, which is what these tools are for (sandbox recipient not authorised is the usual cause).
+- **Header:** logo and links left; one group on the right (track, theme, cart, account), all icon buttons the same size; signed in is a
+  single avatar menu (My orders, Wishlist, Saved addresses, plus the admin pages for admins).
+
 ## 7. Deployment (Vercel)
 
 Environment variables (Project, Settings, Environment Variables; Production at least):
@@ -162,7 +189,8 @@ Environment variables (Project, Settings, Environment Variables; Production at l
 | `MAILGUN_FROM` | yes for email | `Shopora <orders@your-domain>` |
 | `MAILGUN_BASE_URL` | EU only | `https://api.eu.mailgun.net` |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | for Google sign-in | from Google Cloud Console |
-| `ADMIN_EMAILS` | for `/admin/orders` | your Google email(s), comma separated |
+| `ADMIN_EMAILS` | for the admin pages | your Google email(s), comma separated |
+| `CRON_SECRET` | for the daily stock-release job | any long random string; Vercel sends it to the cron route |
 
 Never set `DISABLE_RATE_LIMIT`. After deploy: open `/api/health`; set the Paystack webhook to `<APP_URL>/api/paystack/webhook`;
 add `<APP_URL>/api/auth/google/callback` to Google's authorized redirect URIs; place a test order with a Paystack test card.

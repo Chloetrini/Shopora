@@ -1,7 +1,7 @@
 import 'server-only'
 import { randomBytes } from 'node:crypto'
 import { siteUrl } from '@/lib/site-url'
-import { confirmOrder, getOrderForPayment, setPaymentReference } from './db/orders'
+import { confirmOrder, flagLatePayment, getOrderForPayment, setPaymentReference } from './db/orders'
 import { sendConfirmationOnce } from './order-emails'
 import { decidePayment, orderIdFromReference, type PaymentVerdict } from './payment-rules'
 import { initializeTransaction, verifyTransaction } from './paystack'
@@ -37,6 +37,10 @@ export async function finalizePayment(reference: string): Promise<FinalizeResult
   const verdict = decidePayment(order, paystack)
   if (verdict === 'mismatch') {
     console.error('Paystack amount/currency mismatch', { orderId, expected: order.totalCents, got: paystack.amount })
+  }
+  if (verdict === 'late_payment') {
+    console.error('Paystack payment for a cancelled order; refund needed', { orderId })
+    await flagLatePayment(orderId)
   }
   const newlyConfirmed = verdict === 'confirm' ? await confirmOrder(orderId) : false
   const final = verdict === 'confirm' && !newlyConfirmed ? 'already_done' : verdict

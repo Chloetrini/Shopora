@@ -14,7 +14,7 @@ export type Product = {
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const toProduct = (r: any): Product => ({
+export const toProduct = (r: any): Product => ({
     id: r.id,
     slug: r.slug,
     name: r.name,
@@ -38,5 +38,11 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
   const rows = await sql()`
     select id, slug, name, description, price_cents, currency, image_url, category, stock
     from products where active = true and slug = ${slug}`
+  return rows[0] ? toProduct(rows[0]) : null
+}
+
+export async function getProductById(id: string): Promise<Product | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null
+  const rows = await sql()`select id, slug, name, description, price_cents, currency, image_url, category, stock from products where id = ${id}`
   return rows[0] ? toProduct(rows[0]) : null
 }

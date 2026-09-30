@@ -8,6 +8,11 @@ const order: OrderView = {
   fullName: '<script>alert(1)</script> Ada',
   status: 'confirmed',
   totalCents: 3200000,
+  subtotalCents: 3200000,
+  discountCode: null,
+  discountCents: 0,
+  deliveryCents: 0,
+  deliveryZone: null,
   currency: 'NGN',
   createdAt: '2026-09-30T12:00:00.000Z',
   address: '1 Main St, Lagos "NG"',
@@ -57,5 +62,39 @@ describe('orderStatusEmail', () => {
     for (const s of ['shipped', 'out_for_delivery', 'delivered', 'cancelled'] as const) {
       expect(orderStatusEmail(order, s, null).subject.length).toBeGreaterThan(5)
     }
+  })
+})
+
+import { backInStockEmail, lowStockEmail } from './email-templates'
+
+describe('discount, back in stock and low stock emails', () => {
+  it('shows the discount line when there is one', () => {
+    const e = orderConfirmationEmail({ ...order, discountCode: 'SAVE10', discountCents: 320000, subtotalCents: 3520000 })
+    expect(e.text).toContain('Discount (SAVE10): -₦3,200.00')
+    expect(e.html).toContain('SAVE10')
+    expect(orderConfirmationEmail(order).text).not.toContain('Discount')
+  })
+  it('escapes product names and links to the product', () => {
+    const e = backInStockEmail('Mug <b>', 'ceramic-mug')
+    expect(e.html).not.toContain('<b>')
+    expect(e.text).toContain('/products/ceramic-mug')
+  })
+  it('lists low stock items', () => {
+    const e = lowStockEmail([{ name: 'Mug', stock: 2 }, { name: 'Tote <i>', stock: 4 }])
+    expect(e.text).toContain('Mug: 2 left')
+    expect(e.html).not.toContain('<i>')
+  })
+})
+
+describe('delivery line', () => {
+  it('shows the fee, or Free, with the zone name', () => {
+    const paid = orderConfirmationEmail({ ...order, deliveryCents: 250000, deliveryZone: 'Lagos' })
+    expect(paid.text).toContain('Delivery (Lagos): ₦2,500.00')
+    expect(paid.html).toContain('Lagos')
+    expect(orderConfirmationEmail({ ...order, deliveryCents: 0, deliveryZone: 'Lagos' }).text).toContain('Delivery (Lagos): Free')
+    expect(orderConfirmationEmail(order).text).not.toContain('Delivery')
+  })
+  it('escapes the zone name in the HTML', () => {
+    expect(orderConfirmationEmail({ ...order, deliveryZone: '<b>x</b>', deliveryCents: 1 }).html).not.toContain('<b>x</b>')
   })
 })

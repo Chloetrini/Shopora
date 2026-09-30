@@ -1,11 +1,16 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { configStatus } from '@/server/config-status'
 import { sql } from '@/server/db/client'
+import { checkMailgun } from '@/server/mailgun-check'
+import { allow, clientIp } from '@/server/rate-limit'
 
 export const dynamic = 'force-dynamic'
 
-/** Open after a deploy: "database": "connected" and everything you set up should say configured. No secrets in here. */
-export async function GET() {
+/**
+ * Open after a deploy: "database": "connected" and everything you set up should say configured. No secrets in here.
+ * Add ?check=email to ask Mailgun about your domain (read-only, nothing is sent; 5 per 15 min per IP).
+ */
+export async function GET(req: NextRequest) {
   let database = 'connected'
   try {
     await sql()`select 1`
@@ -14,5 +19,11 @@ export async function GET() {
   }
   const config = configStatus(process.env)
   const healthy = database === 'connected' && config.sessionSecret === 'ok'
-  return NextResponse.json({ status: healthy ? 'ok' : 'degraded', database, ...config }, { status: healthy ? 200 : 503 })
+  const body: Record<string, unknown> = { status: healthy ? 'ok' : 'degraded', database, ...config }
+  if (req.nextUrl.searchParams.get('check') === 'email') {
+    body.emailCheck = allow(`health-email:${clientIp(req)}`, 5, 15 * 60 * 1000)
+      ? await checkMailgun(process.env)
+      : { hint: 'Too many checks. Try again in a few minutes.' }
+  }
+  return NextResponse.json(body, { status: healthy ? 200 : 503 })
 }

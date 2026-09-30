@@ -14,7 +14,7 @@ import { resendConfirmation, sendConfirmationOnce } from './order-emails'
 
 const order = {
   id: '4f0ecb8e-7b0c-4c39-9d0f-1f5a5b0f9d11', email: 'ada@example.com', fullName: 'Ada', status: 'confirmed',
-  totalCents: 100, currency: 'NGN', createdAt: '2026-09-30T00:00:00.000Z', address: 'x', items: [{ name: 'Mug', unitPriceCents: 100, quantity: 1 }],
+  totalCents: 100, subtotalCents: 100, discountCode: null, discountCents: 0, deliveryCents: 0, deliveryZone: null, currency: 'NGN', createdAt: '2026-09-30T00:00:00.000Z', address: 'x', items: [{ name: 'Mug', unitPriceCents: 100, quantity: 1 }],
 }
 
 beforeEach(() => {

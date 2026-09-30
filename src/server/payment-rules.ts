@@ -1,6 +1,6 @@
 import { isPaidStatus } from '@/lib/order-status'
 
-export type PaymentVerdict = 'confirm' | 'already_done' | 'not_paid' | 'mismatch'
+export type PaymentVerdict = 'confirm' | 'already_done' | 'not_paid' | 'mismatch' | 'late_payment'
 
 /**
  * Whether a Paystack verification lets us mark an order paid. Confirm only when Paystack says
@@ -12,8 +12,10 @@ export function decidePayment(
   paystack: { status: string; amount: number; currency: string },
 ): PaymentVerdict {
   if (isPaidStatus(order.status)) return 'already_done'
-  if (order.status !== 'pending') return 'not_paid'
   if (paystack.status !== 'success') return 'not_paid'
+  // Money arrived for an order that was cancelled or expired first: never revive it, flag it for a refund.
+  if (order.status === 'cancelled') return paystack.amount === order.totalCents ? 'late_payment' : 'mismatch'
+  if (order.status !== 'pending') return 'not_paid'
   if (paystack.amount !== order.totalCents || paystack.currency.toUpperCase() !== order.currency.toUpperCase()) {
     return 'mismatch'
   }

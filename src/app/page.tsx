@@ -5,6 +5,8 @@ import { ProductImage } from '@/components/shop/product-image'
 import { SITE } from '@/constants/site'
 import { applyCatalogFilters, catalogHref, CATEGORIES, parseCatalogQuery, SORTS } from '@/lib/catalog'
 import { formatMoney } from '@/lib/money'
+import { getSessionUser } from '@/server/current-user'
+import { ratingSummaries, wishlistProductIds } from '@/server/db/features'
 import { listProducts } from '@/server/db/products'
 
 // Reads the database on every request so new products show up without a rebuild.
@@ -19,7 +21,12 @@ const TRUST = [
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ category?: string; sort?: string; q?: string }> }) {
   const f = parseCatalogQuery(await searchParams)
-  const all = await listProducts()
+  const user = await getSessionUser()
+  const [all, wishIds, ratings] = await Promise.all([
+    listProducts(),
+    user ? wishlistProductIds(user.id) : Promise.resolve([] as string[]),
+    ratingSummaries().catch(() => ({})),
+  ])
   const products = applyCatalogFilters(all, f)
   const featured = all.slice(0, 3)
   const filtered = !!(f.category || f.search)
@@ -108,7 +115,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </div>
         ) : (
           <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
-            {products.map((p) => <ProductCard key={p.id} product={p} />)}
+            {products.map((p) => <ProductCard key={p.id} product={p} wished={wishIds.includes(p.id)} signedIn={!!user} rating={(ratings as Record<string, { average: number; count: number }>)[p.id]} />)}
           </ul>
         )}
       </section>

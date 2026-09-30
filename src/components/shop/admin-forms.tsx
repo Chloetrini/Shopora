@@ -1,0 +1,173 @@
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
+/** Small helper: call the API, then refresh the server-rendered page. Returns the error text, or ''. */
+async function send(url: string, method: string, body?: unknown, raw?: Blob): Promise<{ ok: boolean; message: string; body?: Record<string, unknown> }> {
+  try {
+    const res = await fetch(url, raw ? { method, body: raw } : { method, headers: { 'Content-Type': 'application/json' }, body: body === undefined ? undefined : JSON.stringify(body) })
+    const json = await res.json().catch(() => ({}))
+    return { ok: res.ok, message: json.details?.[0]?.message ?? json.message ?? (res.ok ? 'Saved' : 'Something went wrong'), body: json.body }
+  } catch {
+    return { ok: false, message: 'Could not reach the server.' }
+  }
+}
+
+const input = 'rounded-lg border border-border bg-background px-2 py-1.5 text-sm'
+const button = 'rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-60'
+
+function Msg({ m }: { m: { ok: boolean; text: string } | null }) {
+  return m ? <p role="status" className={`mt-1 w-full text-sm ${m.ok ? 'text-primary' : 'text-red-600 dark:text-red-400'}`}>{m.text}</p> : null
+}
+
+export function ProductAdminRow({ id, stock, active, hasUpload }: { id: string; stock: number; active: boolean; hasUpload: boolean }) {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [m, setM] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function save(patch: { stock?: number; active?: boolean }) {
+    setBusy(true)
+    const r = await send(`/api/admin/products/${id}`, 'PATCH', patch)
+    setM({ ok: r.ok, text: r.ok ? (Number(r.body?.notified) > 0 ? `Saved. ${r.body?.notified} people were emailed that it’s back.` : 'Saved') : r.message })
+    setBusy(false)
+    if (r.ok) router.refresh()
+  }
+
+  async function upload(file: File | undefined) {
+    if (!file) return
+    setBusy(true)
+    const r = await send(`/api/admin/products/${id}/image`, 'PUT', undefined, file)
+    setM({ ok: r.ok, text: r.message })
+    setBusy(false)
+    if (r.ok) router.refresh()
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <form className="flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); save({ stock: Number(new FormData(e.currentTarget).get('stock')) }) }}>
+        <label htmlFor={`stock-${id}`} className="text-sm">Stock</label>
+        <input id={`stock-${id}`} name="stock" type="number" min={0} max={100000} defaultValue={stock} className={`${input} w-24`} />
+        <button type="submit" disabled={busy} className={button}>Save</button>
+      </form>
+      <button type="button" disabled={busy} onClick={() => save({ active: !active })} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">{active ? 'Hide from shop' : 'Show in shop'}</button>
+      <label className="cursor-pointer rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary">
+        {hasUpload ? 'Replace photo' : 'Upload photo'}
+        <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} />
+      </label>
+      <Msg m={m} />
+    </div>
+  )
+}
+
+export function DiscountForm() {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [m, setM] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const f = new FormData(e.currentTarget)
+    const num = (k: string) => (String(f.get(k) ?? '').trim() === '' ? undefined : Number(f.get(k)))
+    const form = e.currentTarget
+    setBusy(true)
+    const r = await send('/api/admin/discounts', 'POST', {
+      code: String(f.get('code') ?? ''), percentOff: num('percentOff'), amountOffNaira: num('amountOffNaira'), maxUses: num('maxUses'),
+      expiresAt: String(f.get('expiresAt') ?? '') || undefined,
+    })
+    setM({ ok: r.ok, text: r.ok ? 'Code created' : r.message })
+    setBusy(false)
+    if (r.ok) { form.reset(); router.refresh() }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
+      <h2 className="font-semibold sm:col-span-2">New discount code</h2>
+      <div><label htmlFor="d-code" className="block text-sm">Code</label><input id="d-code" name="code" required maxLength={20} placeholder="WELCOME10" className={`${input} mt-1 w-full uppercase`} /></div>
+      <div><label htmlFor="d-pct" className="block text-sm">Percent off (1 to 90)</label><input id="d-pct" name="percentOff" type="number" min={1} max={90} className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="d-amt" className="block text-sm">OR amount off (naira)</label><input id="d-amt" name="amountOffNaira" type="number" min={1} className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="d-max" className="block text-sm">Max uses (optional)</label><input id="d-max" name="maxUses" type="number" min={1} className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="d-exp" className="block text-sm">Expires (optional)</label><input id="d-exp" name="expiresAt" type="date" className={`${input} mt-1 w-full`} /></div>
+      <div className="flex items-end"><button type="submit" disabled={busy} className={button}>{busy ? 'Saving…' : 'Create code'}</button></div>
+      <div className="sm:col-span-2"><Msg m={m} /></div>
+    </form>
+  )
+}
+
+export function DiscountToggle({ code, active }: { code: string; active: boolean }) {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  return (
+    <button type="button" disabled={busy} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60"
+      onClick={async () => { setBusy(true); await send(`/api/admin/discounts/${encodeURIComponent(code)}`, 'PATCH', { active: !active }); setBusy(false); router.refresh() }}>
+      {active ? 'Turn off' : 'Turn on'}
+    </button>
+  )
+}
+
+export function ZoneForm() {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [m, setM] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const f = new FormData(e.currentTarget)
+    const form = e.currentTarget
+    const free = String(f.get('freeOverNaira') ?? '').trim()
+    setBusy(true)
+    const r = await send('/api/admin/delivery', 'POST', {
+      name: String(f.get('name') ?? ''), country: String(f.get('country') ?? ''), region: String(f.get('region') ?? '') || undefined,
+      feeNaira: Number(f.get('feeNaira')), freeOverNaira: free === '' ? undefined : Number(free),
+    })
+    setM({ ok: r.ok, text: r.ok ? 'Zone created' : r.message })
+    setBusy(false)
+    if (r.ok) { form.reset(); router.refresh() }
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
+      <h2 className="font-semibold sm:col-span-2">New delivery zone</h2>
+      <div><label htmlFor="z-name" className="block text-sm">Name shown to buyers</label><input id="z-name" name="name" required maxLength={60} placeholder="Port Harcourt" className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="z-country" className="block text-sm">Country (or * for everywhere else)</label><input id="z-country" name="country" required placeholder="Nigeria" className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="z-region" className="block text-sm">State or region (blank = whole country)</label><input id="z-region" name="region" placeholder="Rivers" className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="z-fee" className="block text-sm">Delivery fee (naira)</label><input id="z-fee" name="feeNaira" type="number" min={0} required className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="z-free" className="block text-sm">Free delivery over (naira, optional)</label><input id="z-free" name="freeOverNaira" type="number" min={1} className={`${input} mt-1 w-full`} /></div>
+      <div className="flex items-end"><button type="submit" disabled={busy} className={button}>{busy ? 'Saving…' : 'Add zone'}</button></div>
+      <div className="sm:col-span-2"><Msg m={m} /></div>
+    </form>
+  )
+}
+
+export function ZoneRow({ id, feeNaira, freeOverNaira, active }: { id: string; feeNaira: number; freeOverNaira: number | null; active: boolean }) {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [m, setM] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function patch(body: Record<string, unknown>) {
+    setBusy(true)
+    const r = await send(`/api/admin/delivery/${id}`, 'PATCH', body)
+    setM({ ok: r.ok, text: r.ok ? 'Saved' : r.message })
+    setBusy(false)
+    if (r.ok) router.refresh()
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <form className="flex flex-wrap items-center gap-2" onSubmit={(e) => {
+        e.preventDefault()
+        const f = new FormData(e.currentTarget)
+        const free = String(f.get('freeOverNaira') ?? '').trim()
+        patch({ feeNaira: Number(f.get('feeNaira')), freeOverNaira: free === '' ? null : Number(free) })
+      }}>
+        <label htmlFor={`fee-${id}`} className="text-sm">Fee ₦</label>
+        <input id={`fee-${id}`} name="feeNaira" type="number" min={0} defaultValue={feeNaira} className={`${input} w-28`} />
+        <label htmlFor={`free-${id}`} className="text-sm">Free over ₦</label>
+        <input id={`free-${id}`} name="freeOverNaira" type="number" min={1} defaultValue={freeOverNaira ?? ''} placeholder="never" className={`${input} w-32`} />
+        <button type="submit" disabled={busy} className={button}>Save</button>
+      </form>
+      <button type="button" disabled={busy} onClick={() => patch({ active: !active })} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">{active ? 'Turn off' : 'Turn on'}</button>
+      <Msg m={m} />
+    </div>
+  )
+}
