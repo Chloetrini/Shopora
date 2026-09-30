@@ -1,7 +1,4 @@
 import type { Metadata } from 'next'
-import { getSessionUser } from '@/server/current-user'
-import { SiteFooter } from '@/components/layout/site-footer'
-import { SiteHeader } from '@/components/layout/site-header'
 import { SITE } from '@/constants/site'
 import './globals.css'
 
@@ -13,8 +10,7 @@ export const metadata: Metadata = {
 // Sets the theme before first paint so there is no flash. Key must match any future toggle.
 const themeScript = `try{var t=localStorage.getItem('shopora-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}`
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const user = await getSessionUser()
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -26,9 +22,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="min-h-screen font-sans antialiased">
-        <SiteHeader user={user} />
-        <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
-        <SiteFooter />
+        {children}
       </body>
     </html>
   )

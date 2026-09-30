@@ -175,6 +175,8 @@ Vercel deploy, env vars, Google redirect URIs, health check, README.
 - **Email diagnosis:** `GET /api/health?check=email` asks Mailgun about the configured domain (read-only, no secrets, 5 per 15 min per IP)
   and explains the result; the admin "Send confirmation email" button shows Mailgun's exact error. Both live orders so far were paid but
   the confirmation was never sent, which is what these tools are for (sandbox recipient not authorised is the usual cause).
+- **Layouts:** route groups. `(shop)` has the navbar and footer; `(auth)` (login, register) has neither, only the name above the card;
+  the 404 and error pages are bare too. New public shop pages go in `(shop)`.
 - **Header:** logo and links left; one group on the right (track, theme, cart, account), all icon buttons the same size; signed in is a
   single avatar menu (My orders, Wishlist, Saved addresses, plus the admin pages for admins).
 
