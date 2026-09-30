@@ -66,7 +66,7 @@ Env vars are read lazily so `next build` needs no secrets. See `.env.example`.
   rolls back (`raise exception` at the end). SQL can't run in `npm test`; re-check it that way if it changes.
 - Guest orders: `/orders/[id]` is reachable by the unguessable UUID alone (noindex, no-referrer). Milestone 5 adds
   ownership for signed-in users.
-- No rate limit on `POST /api/orders` yet (Milestone 6 hardening).
+- `POST /api/orders` is rate limited (20 per 15 min per IP), as are `/pay` (30) and guest tracking (20).
 
 - **Paystack** (`server/paystack.ts`, `payments.ts`, `payment-rules.ts`): reference = `<order uuid>-<hex>`, so any payment traces
   back to its order. Return URL `GET /api/paystack/callback` and `POST /api/paystack/webhook` both call `finalizePayment`,
