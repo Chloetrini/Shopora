@@ -370,3 +370,19 @@ export async function lowStockAfterOrder(orderId: string, threshold = 5): Promis
     where i.order_id = ${orderId} and p.stock <= ${threshold} and p.stock + i.quantity > ${threshold}`
   return rows.map((r) => ({ name: r.name as string, stock: r.stock as number }))
 }
+
+/** Paid orders whose confirmation email was never sent (oldest first). */
+export async function listUnsentConfirmations(limit = 25): Promise<{ id: string; email: string }[]> {
+  const rows = await sql()`
+    select id, email from orders
+    where status in ('confirmed','processing','shipped','out_for_delivery','delivered') and confirmation_sent_at is null
+    order by paid_at nulls last, created_at limit ${limit}`
+  return rows.map((r) => ({ id: r.id as string, email: r.email as string }))
+}
+
+export async function countUnsentConfirmations(): Promise<number> {
+  const rows = await sql()`
+    select count(*)::int as n from orders
+    where status in ('confirmed','processing','shipped','out_for_delivery','delivered') and confirmation_sent_at is null`
+  return rows[0].n as number
+}

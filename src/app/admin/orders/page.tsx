@@ -6,7 +6,8 @@ import { AdminStatusForm } from '@/components/shop/admin-status-form'
 import { formatMoney } from '@/lib/money'
 import { STATUS_LABEL } from '@/lib/order-status'
 import { getSessionUser } from '@/server/current-user'
-import { listOrdersForAdmin } from '@/server/db/orders'
+import { countUnsentConfirmations, listOrdersForAdmin } from '@/server/db/orders'
+import { ResendMissingButton } from '@/components/shop/resend-missing-button'
 
 export const metadata: Metadata = { title: 'Manage orders', robots: { index: false, follow: false } }
 export const dynamic = 'force-dynamic'
@@ -14,12 +15,13 @@ export const dynamic = 'force-dynamic'
 export default async function AdminOrdersPage() {
   const user = await getSessionUser()
   if (!user?.isAdmin) notFound() // not even a hint that this page exists
-  const orders = await listOrdersForAdmin()
+  const [orders, unsent] = await Promise.all([listOrdersForAdmin(), countUnsentConfirmations()])
   return (
     <div>
       <h1 className="font-display text-3xl font-semibold">Manage orders</h1>
       <p className="mb-5 mt-1 text-muted-foreground">Moving an order forward emails the buyer for shipped, out for delivery, delivered and cancelled.</p>
       <AdminTabs current="/admin/orders" />
+      {unsent > 0 && <ResendMissingButton count={unsent} />}
       {orders.length === 0 ? (
         <p className="mt-6 text-muted-foreground">No orders yet.</p>
       ) : (

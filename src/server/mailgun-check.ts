@@ -52,3 +52,28 @@ export async function checkMailgun(env: Env, fetchImpl: typeof fetch = fetch): P
   if (hints.length === 0) hints.push('Key, domain and sender look right. If emails still do not arrive, open Mailgun, Sending, Logs to see why a message was rejected.')
   return { apiKey: 'valid', domain: 'found', kind, state, sender, hint: hints.join(' ') }
 }
+
+export type BrevoCheck = { configured: boolean; apiKey: 'valid' | 'rejected' | 'unchecked'; sender: 'verified in Brevo' | 'not a verified Brevo sender' | 'unchecked'; hint: string }
+
+/** Read-only: lists the account's senders and confirms BREVO_FROM is one of them. Never returns the key. */
+export async function checkBrevo(env: Env, fetchImpl: typeof fetch = fetch): Promise<BrevoCheck> {
+  const key = env.BREVO_API_KEY
+  const from = env.BREVO_FROM?.trim()
+  if (!key || !from) return { configured: false, apiKey: 'unchecked', sender: 'unchecked', hint: 'Backup sender not set. Add BREVO_API_KEY and BREVO_FROM in Vercel to have Brevo send whenever Mailgun refuses an email.' }
+  let res: Response
+  try {
+    res = await fetchImpl('https://api.brevo.com/v3/senders', { headers: { 'api-key': key, Accept: 'application/json' }, cache: 'no-store' })
+  } catch {
+    return { configured: true, apiKey: 'unchecked', sender: 'unchecked', hint: 'Could not reach Brevo from the server. Try again in a minute.' }
+  }
+  if (res.status === 401 || res.status === 403) {
+    return { configured: true, apiKey: 'rejected', sender: 'unchecked', hint: 'Brevo rejected the API key. Create a new API key in Brevo (SMTP & API, API keys, it starts with xkeysib-) and update BREVO_API_KEY. If Brevo blocks unknown IPs, turn off Authorised IPs.' }
+  }
+  if (!res.ok) return { configured: true, apiKey: 'valid', sender: 'unchecked', hint: `Brevo answered ${res.status}. Try again shortly.` }
+  const json = (await res.json().catch(() => null)) as { senders?: { email?: string; active?: boolean }[] } | null
+  const address = (/<([^>]+)>/.exec(from)?.[1] ?? from).toLowerCase()
+  const match = json?.senders?.find((s) => s.email?.toLowerCase() === address && s.active)
+  return match
+    ? { configured: true, apiKey: 'valid', sender: 'verified in Brevo', hint: 'Brevo is ready as the backup sender.' }
+    : { configured: true, apiKey: 'valid', sender: 'not a verified Brevo sender', hint: `BREVO_FROM must use an address verified in Brevo (Senders, domains & dedicated IPs). ${address} is not an active sender there.` }
+}

@@ -168,6 +168,10 @@ Vercel deploy, env vars, Google redirect URIs, health check, README.
   emails each subscriber once. Admins (`ADMIN_EMAILS`) are emailed when an order drops a product to 5 or fewer.
 - **Self-hosted photos:** `/admin/products` uploads a JPG/PNG/WebP (under 1.5 MB, type decided from the bytes) stored as base64 in
   `products.image_b64` and served from `/api/products/<slug>/image?v=`; this replaces the Unsplash hotlink for that product.
+- **Email providers** (`server/email.service.ts`, tested): Mailgun first (the course requirement), then **Brevo as an automatic backup** when Mailgun
+  refuses a message (`BREVO_API_KEY`, `BREVO_FROM`; the sender must be verified in Brevo). If both fail the error names both reasons. Unsent
+  confirmations are retried by the daily cron and by the admin button "Send the missing emails" (`/admin/orders`, shows the provider's reason).
+  DMARC caveat: a `yahoo.com` sender (p=reject) sent through Brevo/Mailgun is often rejected or filtered; use a Gmail sender or, best, a verified domain.
 - **Email diagnosis:** `GET /api/health?check=email` asks Mailgun about the configured domain (read-only, no secrets, 5 per 15 min per IP)
   and explains the result; the admin "Send confirmation email" button shows Mailgun's exact error. Both live orders so far were paid but
   the confirmation was never sent, which is what these tools are for (sandbox recipient not authorised is the usual cause).
@@ -190,6 +194,7 @@ Environment variables (Project, Settings, Environment Variables; Production at l
 | `MAILGUN_BASE_URL` | EU only | `https://api.eu.mailgun.net` |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | for Google sign-in | from Google Cloud Console |
 | `ADMIN_EMAILS` | for the admin pages | your Google email(s), comma separated |
+| `BREVO_API_KEY`, `BREVO_FROM` | backup email sender | Brevo API key (xkeysib-…) and `Shopora <address verified in Brevo>` |
 | `CRON_SECRET` | for the daily stock-release job | any long random string; Vercel sends it to the cron route |
 
 Never set `DISABLE_RATE_LIMIT`. After deploy: open `/api/health`; set the Paystack webhook to `<APP_URL>/api/paystack/webhook`;

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { checkMailgun } from './mailgun-check'
+import { checkBrevo, checkMailgun } from './mailgun-check'
 
 const env = { MAILGUN_API_KEY: 'key-SECRET123', MAILGUN_DOMAIN: 'sandbox9975019130844c6995f973d985d8a9a5.mailgun.org', MAILGUN_FROM: 'Shopora <postmaster@sandbox9975019130844c6995f973d985d8a9a5.mailgun.org>' }
 const reply = (status: number, body: unknown = {}) => vi.fn().mockResolvedValue(new Response(JSON.stringify(body), { status })) as unknown as typeof fetch
@@ -36,5 +36,26 @@ describe('checkMailgun', () => {
     const [url, init] = (f as unknown as ReturnType<typeof vi.fn>).mock.calls[0]
     expect(url).toBe(`https://api.eu.mailgun.net/v3/domains/${env.MAILGUN_DOMAIN}`)
     expect(init.headers.Authorization).toBe(`Basic ${Buffer.from(`api:${env.MAILGUN_API_KEY}`).toString('base64')}`)
+  })
+})
+
+describe('checkBrevo', () => {
+  const benv = { BREVO_API_KEY: 'xkeysib-SECRET', BREVO_FROM: 'Shopora <me@example.com>' }
+  it('says when the backup is not configured, without calling Brevo', async () => {
+    const f = reply(200)
+    const r = await checkBrevo({}, f)
+    expect(r.configured).toBe(false)
+    expect(f).not.toHaveBeenCalled()
+  })
+  it('confirms an active verified sender and flags one that is not', async () => {
+    expect((await checkBrevo(benv, reply(200, { senders: [{ email: 'ME@example.com', active: true }] }))).sender).toBe('verified in Brevo')
+    const r = await checkBrevo(benv, reply(200, { senders: [{ email: 'other@example.com', active: true }, { email: 'me@example.com', active: false }] }))
+    expect(r.sender).toBe('not a verified Brevo sender')
+    expect(r.hint).toContain('me@example.com')
+  })
+  it('flags a rejected key and never echoes it', async () => {
+    const r = await checkBrevo(benv, reply(401))
+    expect(r.apiKey).toBe('rejected')
+    expect(JSON.stringify(r)).not.toContain('SECRET')
   })
 })

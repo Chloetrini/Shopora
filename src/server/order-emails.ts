@@ -1,6 +1,6 @@
 import 'server-only'
 import { isPaidStatus, type OrderStatus } from '@/lib/order-status'
-import { claimConfirmation, getOrder, markConfirmationSent, releaseConfirmation } from './db/orders'
+import { claimConfirmation, getOrder, listUnsentConfirmations, markConfirmationSent, releaseConfirmation } from './db/orders'
 import { orderConfirmationEmail, orderStatusEmail } from './email-templates'
 import { sendEmail } from './email.service'
 
@@ -54,4 +54,27 @@ export async function resendConfirmation(orderId: string): Promise<{ ok: true; r
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
   }
+}
+
+/**
+ * Sends every confirmation that never went out, and reports what happened (for the admin button).
+ * Errors are summarised, not hidden: the first distinct reasons are returned so the cause is visible.
+ */
+export async function resendMissingConfirmations(limit = 25): Promise<{ attempted: number; sent: number; failed: number; reasons: string[] }> {
+  const orders = await listUnsentConfirmations(limit)
+  let sent = 0
+  const reasons = new Set<string>()
+  for (const o of orders) {
+    const r = await resendConfirmation(o.id)
+    if (r.ok && r.result === 'sent') sent++
+    else reasons.add(r.ok ? 'Email is not configured on this server' : r.error)
+  }
+  return { attempted: orders.length, sent, failed: orders.length - sent, reasons: [...reasons].slice(0, 3) }
+}
+
+/** The cron's quiet version: tries each unsent confirmation once; errors are only logged. */
+export async function retryMissingConfirmations(limit = 25): Promise<number> {
+  const orders = await listUnsentConfirmations(limit)
+  for (const o of orders) await sendConfirmationOnce(o.id)
+  return orders.length
 }
