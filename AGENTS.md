@@ -38,7 +38,8 @@ Done only when typecheck, lint, test and build all pass. Check UI at ~400px and 
 
 ## 4. Data (Neon project `shopora`, id `cool-voice-24183935`)
 
-SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`.
+SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`
+(all three are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
 Tables: `users`, `products`, `orders`, `order_items`. Money is **integer cents**, format only at the edge
 (`lib/money.ts`). `order_items` copies name and price at purchase time. Never build SQL by string
 concatenation: use the tagged template from `sql()` so values are parameters.
@@ -63,13 +64,21 @@ Env vars are read lazily so `next build` needs no secrets. See `.env.example`.
   ownership for signed-in users.
 - No rate limit on `POST /api/orders` yet (Milestone 6 hardening).
 
+- **Paystack** (`server/paystack.ts`, `payments.ts`, `payment-rules.ts`): reference = `<order uuid>-<hex>`, so any payment traces
+  back to its order. Return URL `GET /api/paystack/callback` and `POST /api/paystack/webhook` both call `finalizePayment`,
+  which **re-verifies with Paystack** and only confirms when status, amount and currency match (`decidePayment`, unit tested).
+  `confirmOrder` is a conditional update, true for exactly one caller: that caller sends the email (milestone 4).
+  Set the webhook URL in the Paystack dashboard to `<APP_URL>/api/paystack/webhook`.
+- Stock is taken when the order is created, so an abandoned payment holds stock. Add expiry/release in milestone 6.
+- Paystack test card: `4084 0840 8408 4081`, any future expiry, CVV `408` (see Paystack's docs if it changes).
+
 ## 6. Milestones
 
 ### ✅ Milestone 1: Foundation
 Next.js + Tailwind + Vitest scaffold, Neon schema and seed, catalogue on `/`.
 ### ✅ Milestone 2: Cart and checkout
 Cart (client, persisted in localStorage), checkout form, `POST /api/orders` (transaction, server-side totals, order stays `pending`), order page.
-### ⬜ Milestone 3: Paystack payment (test mode)
+### ✅ Milestone 3: Paystack payment (test mode)
 Initialize, redirect, verify on return, webhook, currency to NGN, order `pending` to `confirmed`, tests with stubbed `fetch` (wrong amount, already-confirmed, bad signature).
 ### ⬜ Milestone 4: Confirmation emails
 Mailgun `sendEmail()`, order confirmation template (HTML-escaped), tests with stubbed `fetch`.

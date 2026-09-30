@@ -19,7 +19,7 @@ const FIELDS = [
   { name: 'country', label: 'Country', autoComplete: 'country-name' },
 ] as const
 
-export function CheckoutView() {
+export function CheckoutView({ testMode }: { testMode: boolean }) {
   const router = useRouter()
   const { cart, clear } = useCart()
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -61,7 +61,8 @@ export function CheckoutView() {
       const json = await res.json()
       if (res.ok) {
         clear()
-        router.push(`/orders/${json.body.id}`)
+        if (json.body.paymentUrl) window.location.href = json.body.paymentUrl
+        else router.push(`/orders/${json.body.id}`)
         return
       }
       if (Array.isArray(json.details)) {
@@ -80,6 +81,7 @@ export function CheckoutView() {
     <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
       <form onSubmit={onSubmit} noValidate className="max-w-xl space-y-4">
         <h1 className="text-2xl font-semibold">Checkout</h1>
+        {testMode && <p className="rounded-md border border-border bg-surface p-3 text-sm">Test mode: you will pay with a Paystack test card. No real money moves.</p>}
         {FIELDS.map((f) => (
           <div key={f.name}>
             <label htmlFor={f.name} className="block text-sm font-medium">{f.label}</label>
@@ -97,7 +99,7 @@ export function CheckoutView() {
         ))}
         {formError && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{formError}</p>}
         <button type="submit" disabled={busy} className="rounded-md bg-primary px-5 py-2.5 font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
-          {busy ? 'Placing order…' : 'Place order'}
+          {busy ? 'Placing order…' : 'Place order and pay'}
         </button>
       </form>
       <aside className="h-fit rounded-lg border border-border bg-surface p-4">

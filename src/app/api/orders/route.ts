@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { orderSchema } from '@/lib/validation'
 import { createOrder, OutOfStockError } from '@/server/db/orders'
+import { startPayment } from '@/server/payments'
+import { paystackConfigured } from '@/server/paystack'
 
 export async function POST(req: NextRequest) {
   let body: unknown
@@ -22,7 +24,16 @@ export async function POST(req: NextRequest) {
   }
   try {
     const { id } = await createOrder(parsed.data)
-    return NextResponse.json({ success: true, message: 'Order placed', body: { id } }, { status: 201 })
+    // If Paystack is down or not configured the order is still saved; the order page offers "Pay now".
+    let paymentUrl: string | null = null
+    if (paystackConfigured()) {
+      try {
+        paymentUrl = await startPayment(id)
+      } catch (e) {
+        console.error('startPayment failed', e)
+      }
+    }
+    return NextResponse.json({ success: true, message: 'Order placed', body: { id, paymentUrl } }, { status: 201 })
   } catch (e) {
     if (e instanceof OutOfStockError) {
       return NextResponse.json({ success: false, message: e.message, code: 'out_of_stock' }, { status: 409 })

@@ -99,3 +99,29 @@ export async function getOrder(id: string): Promise<OrderView | null> {
     items: items.map((i) => ({ name: i.name, unitPriceCents: i.unit_price_cents, quantity: i.quantity })),
   }
 }
+
+export type PaymentOrder = { id: string; email: string; status: string; totalCents: number; currency: string }
+
+export async function getOrderForPayment(id: string): Promise<PaymentOrder | null> {
+  const rows = await sql()`select id, email, status, total_cents, currency from orders where id = ${id}`
+  const o = rows[0]
+  return o ? { id: o.id, email: o.email, status: o.status, totalCents: o.total_cents, currency: o.currency } : null
+}
+
+/** Records the latest attempt. Only pending orders can be paid, so anything else returns null. */
+export async function setPaymentReference(id: string, reference: string): Promise<PaymentOrder | null> {
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return null
+  const rows = await sql()`
+    update orders set paystack_reference = ${reference}
+    where id = ${id} and status = 'pending'
+    returning id, email, status, total_cents, currency`
+  const o = rows[0]
+  return o ? { id: o.id, email: o.email, status: o.status, totalCents: o.total_cents, currency: o.currency } : null
+}
+
+/** True for exactly one caller: the one that flips pending to confirmed. */
+export async function confirmOrder(id: string): Promise<boolean> {
+  const rows = await sql()`
+    update orders set status = 'confirmed', paid_at = now() where id = ${id} and status = 'pending' returning id`
+  return rows.length === 1
+}
