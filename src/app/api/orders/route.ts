@@ -4,8 +4,13 @@ import { getRequestUser } from '@/server/current-user'
 import { createOrder, OutOfStockError } from '@/server/db/orders'
 import { startPayment } from '@/server/payments'
 import { paystackConfigured } from '@/server/paystack'
+import { allow, clientIp } from '@/server/rate-limit'
 
 export async function POST(req: NextRequest) {
+  // Each order takes stock, so cap how fast one address can place them.
+  if (!allow(`order:${clientIp(req)}`, 20, 15 * 60 * 1000)) {
+    return NextResponse.json({ success: false, message: 'Too many orders. Try again in a few minutes.' }, { status: 429 })
+  }
   let body: unknown
   try {
     body = await req.json()

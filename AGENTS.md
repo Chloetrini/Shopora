@@ -100,6 +100,12 @@ Env vars are read lazily so `next build` needs no secrets. See `.env.example`.
   `where user_id = <session user>`. Guests still get `/orders/[id]` by unguessable id. Guest orders are NOT attached to an
   account later (even with the same email), because the email was never verified.
 
+- **Health:** `GET /api/health` shows database connected/unreachable and which integrations are configured (words only, never a secret).
+  Open it right after every deploy. It answers 503 while the database or `SESSION_SECRET` is wrong.
+- `POST /api/orders` (20 per 15 min per IP) and `/pay` (30) are rate limited. Known gap: abandoned `pending` orders keep their stock
+  (an expiry that cancels them would also have to cope with a buyer paying after the expiry; not built).
+- `robots.txt` disallows `/api/`, `/cart`, `/checkout`, `/orders`; the sitemap lists `/`, `/login`, `/register`. New public page: add it to `app/sitemap.ts`.
+
 ## 6. Milestones
 
 ### ✅ Milestone 1: Foundation
@@ -112,5 +118,25 @@ Initialize, redirect, verify on return, webhook, currency to NGN, order `pending
 Mailgun `sendEmail()`, order confirmation template (HTML-escaped), tests with stubbed `fetch`.
 ### ✅ Milestone 5: Accounts and Google sign-in
 Register/login, Google OAuth (Section 5 rules), my orders page.
-### ⬜ Milestone 6: Ship
+### ✅ Milestone 6: Ship (code done; deploy steps in Section 7)
 Vercel deploy, env vars, Google redirect URIs, health check, README.
+
+## 7. Deployment (Vercel)
+
+Environment variables (Project, Settings, Environment Variables; Production at least):
+
+| Name | Required | Value |
+|---|---|---|
+| `DATABASE_URL` | yes | Neon connection string (Neon console, project `shopora`, Connect) |
+| `SESSION_SECRET` | yes | 32+ random characters (`openssl rand -base64 32`) |
+| `APP_URL` | yes | the live origin, no trailing slash, e.g. `https://shopora.vercel.app` (read at build time: redeploy after changing) |
+| `PAYSTACK_SECRET_KEY` | yes for payments | `sk_test_…` while testing |
+| `MAILGUN_API_KEY` | yes for email | Mailgun private API key |
+| `MAILGUN_DOMAIN` | yes for email | sending domain (or sandbox domain) |
+| `MAILGUN_FROM` | yes for email | `Shopora <orders@your-domain>` |
+| `MAILGUN_BASE_URL` | EU only | `https://api.eu.mailgun.net` |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | for Google sign-in | from Google Cloud Console |
+
+Never set `DISABLE_RATE_LIMIT`. After deploy: open `/api/health`; set the Paystack webhook to `<APP_URL>/api/paystack/webhook`;
+add `<APP_URL>/api/auth/google/callback` to Google's authorized redirect URIs; place a test order with a Paystack test card.
+Changing `SESSION_SECRET` signs everyone out.
