@@ -62,7 +62,7 @@ export async function checkMailgun(env: Env, fetchImpl: typeof fetch = fetch): P
   const state = json?.domain?.state ?? 'unknown'
   const hints: string[] = []
   if (state !== 'active') hints.push(`The domain state is "${state}", not "active". Finish verifying it in Mailgun.`)
-  if (kind === 'sandbox') hints.push('This is a sandbox domain: Mailgun only delivers to addresses listed under Authorized recipients (and each must click the confirmation link Mailgun emails them). Add the buyer’s email there, or verify your own domain to send to anyone.')
+  if (kind === 'sandbox') hints.push('This is a sandbox domain: Mailgun only delivers to addresses listed under Authorized recipients (and each must click the confirmation link Mailgun emails them). Add the buyer's email there, or verify your own domain to send to anyone.')
   if (sender !== 'matches the domain') hints.push(`MAILGUN_FROM should use an address on ${domain}, for example Shopora <postmaster@${domain}>.`)
   if (hints.length === 0) hints.push('Key, domain and sender look right. If emails still do not arrive, open Mailgun, Sending, Logs to see why a message was rejected.')
   return { apiKey: 'valid', domain: 'found', kind, state, sender, seenDomain, seenSenderDomain, problems, hint: hints.join(' ') }
