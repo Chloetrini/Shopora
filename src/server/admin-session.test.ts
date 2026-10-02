@@ -20,6 +20,23 @@ const as = async (u: Rec, how: 'cookie' | 'token', path: string) => {
   return new NextRequest(`http://localhost${path}`, how === 'cookie' ? { headers: { cookie: `shopora_session=${sealed}` } } : { headers: { authorization: `Bearer ${sealed}` } })
 }
 
+describe('an app token beats a leftover cookie from another account', () => {
+  it('is the admin the token says, not the person the old cookie says', async () => {
+    const orders = await import('@/app/api/admin/orders/route')
+    const cookieOfOther = await sealSession({ uid: other.id, v: other.sessionVersion })
+    const tokenOfBoss = await sealSession({ uid: boss.id, v: boss.sessionVersion })
+    const res = await orders.GET(new NextRequest('http://localhost/api/admin/orders', { headers: { cookie: `shopora_session=${cookieOfOther}`, authorization: `Bearer ${tokenOfBoss}` } }))
+    expect(res?.status).toBe(200)
+  })
+  it('and the other way round: an app signed in as a normal user is not an admin because of a leftover admin cookie', async () => {
+    const orders = await import('@/app/api/admin/orders/route')
+    const cookieOfBoss = await sealSession({ uid: boss.id, v: boss.sessionVersion })
+    const tokenOfOther = await sealSession({ uid: other.id, v: other.sessionVersion })
+    const res = await orders.GET(new NextRequest('http://localhost/api/admin/orders', { headers: { cookie: `shopora_session=${cookieOfBoss}`, authorization: `Bearer ${tokenOfOther}` } }))
+    expect(res?.status).toBe(404)
+  })
+})
+
 describe('the admin check end to end', () => {
   it('an admin (matching ADMIN_EMAILS, any capitals) gets the admin lists, by cookie and by app token', async () => {
     const orders = await import('@/app/api/admin/orders/route')

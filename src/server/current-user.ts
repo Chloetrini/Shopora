@@ -25,7 +25,8 @@ export async function getSessionUser(): Promise<PublicUser | null> {
 
 /**
  * For route handlers. The website sends the sealed session in a cookie; the phone app sends the same sealed
- * value as `Authorization: Bearer <token>` (native apps have no cookie jar to rely on).
+ * value as `Authorization: Bearer <token>`. An explicit token wins over a cookie: a phone's networking layer may
+ * still hold a cookie from an earlier login as someone else, and it must never outrank the account the app signed in with.
  */
 export const getRequestUser = (req: NextRequest) =>
-  userFromCookie(req.cookies.get(SESSION_COOKIE)?.value ?? bearerToken(req.headers.get('authorization')))
+  userFromCookie(bearerToken(req.headers.get('authorization')) ?? req.cookies.get(SESSION_COOKIE)?.value)

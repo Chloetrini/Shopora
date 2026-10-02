@@ -167,6 +167,11 @@ by the session's `userId` (rule 1); other users' carts are unreachable by constr
 `Authorization: Bearer <token>`; `getRequestUser` accepts the cookie first, then the bearer. The web never receives the token
 (its cookie is httpOnly on purpose). Logging out on the phone = deleting the token.
 
+**Token beats cookie (gotcha, hit in testing).** A phone's networking layer keeps cookies from earlier logins (the password login `Set-Cookie`) and sends them with every
+request. If the server preferred the cookie, an app that later signed in as the admin was still treated as the old non-admin account: the Admin tab showed (the app's own
+state said admin) but every admin list answered "Not found". So `getRequestUser` takes an explicit `Authorization: Bearer` token **before** the cookie, and the app's
+`fetch` uses `credentials: 'omit'`. Tests: `admin-session.test.ts`.
+
 **Google sign-in for the app** (`server/app-auth.ts`): the app opens `GET /api/auth/google?app_redirect=<shopora:// or exp:// link>&app_challenge=<PKCE
 challenge>` in the secure browser sheet (`WebBrowser.openAuthSessionAsync`). The website's Google flow runs unchanged (same Google redirect URI, nothing new in
 Google Cloud Console); at the end the callback redirects to the app link with a **one-time code** (sealed with its own key, 2 minutes) or `?error=<code>`,

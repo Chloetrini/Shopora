@@ -16,6 +16,7 @@ export async function api<T = unknown>(path: string, opts: { method?: string; bo
   try {
     res = await fetch(`${API_URL}${path}`, {
       method: opts.method ?? 'GET',
+      credentials: 'omit', // the app identifies itself with its token only; a cookie from an old login must never ride along
       headers: {
         'Content-Type': 'application/json',
         'x-shopora-client': 'mobile', // makes login and register also return the token
@@ -38,7 +39,7 @@ export const imageUri = (u: string | null | undefined) => (u ? (/^https?:/i.test
 export async function apiUpload<T = unknown>(path: string, method: string, bytes: Blob): Promise<T> {
   let res: Response
   try {
-    res = await fetch(`${API_URL}${path}`, { method, headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: bytes })
+    res = await fetch(`${API_URL}${path}`, { method, credentials: 'omit', headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: bytes })
   } catch {
     throw new ApiError('Could not reach the shop. Check your connection and try again.', 0)
   }
