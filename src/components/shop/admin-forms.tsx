@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { shrinkImage } from '@/lib/shrink-image'
 
 /** Small helper: call the API, then refresh the server-rendered page. Returns the error text, or ''. */
 async function send(url: string, method: string, body?: unknown, raw?: Blob): Promise<{ ok: boolean; message: string; body?: Record<string, unknown> }> {
@@ -37,7 +38,8 @@ export function ProductAdminRow({ id, stock, active, hasUpload }: { id: string; 
   async function upload(file: File | undefined) {
     if (!file) return
     setBusy(true)
-    const r = await send(`/api/admin/products/${id}/image`, 'PUT', undefined, file)
+    // Resize first so a big phone photo fits the 1.5 MB limit.
+    const r = await send(`/api/admin/products/${id}/image`, 'PUT', undefined, await shrinkImage(file))
     setM({ ok: r.ok, text: r.message })
     setBusy(false)
     if (r.ok) router.refresh()

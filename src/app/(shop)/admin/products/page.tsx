@@ -18,7 +18,7 @@ export default async function AdminProductsPage() {
   return (
     <div>
       <h1 className="font-display text-3xl font-semibold">Manage products</h1>
-      <p className="mb-5 mt-1 text-muted-foreground">Change stock, hide a product, or upload your own photo (JPG, PNG or WebP, under 1.5 MB). Restocking a sold-out product emails the people waiting for it.</p>
+      <p className="mb-5 mt-1 text-muted-foreground">Change stock, hide a product, or upload your own photo (JPG, PNG or WebP; big phone photos are shrunk for you). Restocking a sold-out product emails the people waiting for it.</p>
       <AdminTabs current="/admin/products" />
       <ul className="space-y-3">
         {products.map((p) => (
