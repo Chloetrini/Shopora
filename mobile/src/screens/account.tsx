@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
+import * as Updates from 'expo-updates'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Alert, ScrollView, Text, View } from 'react-native'
@@ -40,9 +41,42 @@ export function AccountScreen() {
         </View>
       </View>
       <Button label="Edit profile" onPress={() => nav.navigate('Profile')} />
+      <AppVersion />
       <Button label="Open the website" variant="outline" onPress={async () => { if (!(await openSignedIn('/'))) await WebBrowser.openBrowserAsync(API_URL) }} />
       <Button label="Log out" variant="outline" onPress={logout} />
     </ScrollView>
+  )
+}
+
+/** Which version of the app is running, and a button to fetch the newest one right now. */
+function AppVersion() {
+  const c = useTheme()
+  const [state, setState] = useState<'idle' | 'checking' | 'latest' | 'error'>('idle')
+  const id = Updates.updateId ? Updates.updateId.slice(0, 8) : null
+  async function check() {
+    setState('checking')
+    try {
+      const found = await Updates.checkForUpdateAsync()
+      if (found.isAvailable) {
+        await Updates.fetchUpdateAsync()
+        await Updates.reloadAsync() // restarts the app on the new version
+      } else {
+        setState('latest')
+      }
+    } catch {
+      setState('error')
+    }
+  }
+  return (
+    <View style={{ gap: 6 }}>
+      <Text style={{ color: c.muted, fontSize: 12, textAlign: 'center' }}>
+        App version 1.0.0, {id ? `update ${id}` : 'built-in version (no update loaded yet)'}
+      </Text>
+      <Button label={state === 'checking' ? 'Checking…' : 'Check for updates'} variant="outline" onPress={check} disabled={state === 'checking' || !Updates.isEnabled} style={{ minHeight: 40 }} />
+      {state === 'latest' ? <Note text="You have the newest version." /> : null}
+      {state === 'error' ? <Note text="Couldn’t check just now. Check your connection and try again." error /> : null}
+      {!Updates.isEnabled ? <Note text="Updates are off in this preview (Expo Go updates itself when you reopen the link)." /> : null}
+    </View>
   )
 }
 
