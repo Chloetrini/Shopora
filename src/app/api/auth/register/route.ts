@@ -4,7 +4,7 @@ import { createUser, EmailTakenError, findUserByEmail, toPublicUser } from '@/se
 import { fail, ok, parseJson, tooMany } from '@/server/http'
 import { hashPassword } from '@/server/password'
 import { allow, AUTH_LIMIT, clientIp } from '@/server/rate-limit'
-import { cookieOptions, SESSION_COOKIE, sealSession } from '@/server/session'
+import { cookieOptions, isMobileClient, SESSION_COOKIE, sealSession } from '@/server/session'
 
 export async function POST(req: NextRequest) {
   if (!allow(`auth:${clientIp(req)}`, AUTH_LIMIT.limit, AUTH_LIMIT.windowMs)) return tooMany()
@@ -15,8 +15,9 @@ export async function POST(req: NextRequest) {
   try {
     if (await findUserByEmail(email)) return taken()
     const user = await createUser({ email, fullName, passwordHash: await hashPassword(password), googleId: null, emailVerified: false })
-    const res = ok('Account created', { user: toPublicUser(user) }, 201)
-    res.cookies.set(SESSION_COOKIE, await sealSession({ uid: user.id, v: user.sessionVersion }), cookieOptions())
+    const sealed = await sealSession({ uid: user.id, v: user.sessionVersion })
+    const res = ok('Account created', { user: toPublicUser(user), ...(isMobileClient(req) ? { token: sealed } : {}) }, 201)
+    res.cookies.set(SESSION_COOKIE, sealed, cookieOptions())
     return res
   } catch (e) {
     if (e instanceof EmailTakenError) return taken() // two people registering at the same instant

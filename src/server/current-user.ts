@@ -1,6 +1,7 @@
 import 'server-only'
 import { cookies } from 'next/headers'
 import type { NextRequest } from 'next/server'
+import { bearerToken } from './bearer'
 import { findUserById, toPublicUser, type PublicUser } from './db/users'
 import { SESSION_COOKIE, unsealSession } from './session'
 
@@ -22,5 +23,9 @@ export async function getSessionUser(): Promise<PublicUser | null> {
   return userFromCookie((await cookies()).get(SESSION_COOKIE)?.value)
 }
 
-/** For route handlers. */
-export const getRequestUser = (req: NextRequest) => userFromCookie(req.cookies.get(SESSION_COOKIE)?.value)
+/**
+ * For route handlers. The website sends the sealed session in a cookie; the phone app sends the same sealed
+ * value as `Authorization: Bearer <token>` (native apps have no cookie jar to rely on).
+ */
+export const getRequestUser = (req: NextRequest) =>
+  userFromCookie(req.cookies.get(SESSION_COOKIE)?.value ?? bearerToken(req.headers.get('authorization')))

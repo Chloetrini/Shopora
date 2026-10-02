@@ -42,8 +42,8 @@ Done only when typecheck, lint, test and build all pass. Check UI at ~400px and 
 
 ## 4. Data (Neon project `shopora`, id `cool-voice-24183935`)
 
-SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`, `006_features.sql`, `007_delivery.sql`
-(all seven are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
+SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`, `006_features.sql`, `007_delivery.sql`, `008_cart.sql`
+(all eight are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
 Tables: `users`, `products`, `orders`, `order_items`. Money is **integer cents**, format only at the edge
 (`lib/money.ts`). `order_items` copies name and price at purchase time. Never build SQL by string
 concatenation: use the tagged template from `sql()` so values are parameters.
@@ -124,6 +124,36 @@ Mailgun `sendEmail()`, order confirmation template (HTML-escaped), tests with st
 Register/login, Google OAuth (Section 5 rules), my orders page.
 ### ✅ Milestone 6: Ship (code done; deploy steps in Section 7)
 Vercel deploy, env vars, Google redirect URIs, health check, README.
+
+### 🟡 Lesson 3 — the phone app (HNG15; website stays as it is)
+A real mobile app (Expo / React Native, in `mobile/`) that uses **the same API and database** as the website.
+A user logs in on both; adding to the cart on the web shows up on the phone almost at once (and the other way round).
+- **Milestone 7 ✅ Server cart + token login + JSON endpoints** (this section's API). Done when: typecheck, lint, test, build pass; cart SQL verified on Neon with a rollback test.
+- **Milestone 8 ⬜ Mobile app** (`mobile/`): login/register, products, product page, cart, checkout (Paystack in the browser), my orders and tracking.
+- **Milestone 9 ⬜ Phone testing**: publish with EAS Update, open in Expo Go on the phone, test web to phone cart sync both ways.
+
+**Cart (signed in = server, guest = browser).** Table `cart_items(user_id, product_id, quantity)`; names and prices are always
+joined from `products`. `CartProvider` (`hooks/use-cart.ts`, mounted in the `(shop)` layout) shows a change at once, sends it,
+and replaces its copy with the server's answer; it polls `GET /api/cart` every 2 s while the tab is visible and refreshes on focus.
+A guest's `localStorage` cart is merged into the account cart (`PUT /api/cart`, larger quantity wins) the first time they are signed in.
+Every cart answer carries the whole cart `{ items }`. Creating an order clears the buyer's server cart. All cart queries are scoped
+by the session's `userId` (rule 1); other users' carts are unreachable by construction (there is no id in the URL but the product's).
+
+**Token login for the app.** Same `/api/auth/login` and `/api/auth/register`; when the request has the header
+`x-shopora-client: mobile` the body also contains `token` (the same sealed session as the cookie). The app sends
+`Authorization: Bearer <token>`; `getRequestUser` accepts the cookie first, then the bearer. The web never receives the token
+(its cookie is httpOnly on purpose). Logging out on the phone = deleting the token. Google sign-in is web only for now.
+
+| Method & path | Auth | Returns |
+|---|---|---|
+| `GET /api/cart` | ✓ | `{ items }` (CartItem + `slug`, `imageUrl`, `stock`) |
+| `POST /api/cart` | ✓ `{ productId, quantity }` | adds; 404 unknown product, 409 `cart_full` (20 lines) |
+| `PUT /api/cart` | ✓ `{ items: [{ productId, quantity }] }` | merges a guest cart |
+| `PATCH /api/cart/[productId]` | ✓ `{ quantity }` | sets the quantity; 0 removes |
+| `DELETE /api/cart/[productId]`, `DELETE /api/cart` | ✓ | removes a line / empties the cart |
+| `GET /api/products`, `GET /api/products/[slug]` | – | `{ products }` / `{ product }` |
+| `GET /api/orders` | ✓ | `{ orders }` (my orders) |
+| `GET /api/orders/[id]` | – (the unguessable id is the key) | `{ order }` with items and timeline |
 
 ## 6b. Tracking, admin and look (added after milestone 6)
 

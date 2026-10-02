@@ -26,6 +26,10 @@ export async function unsealSession(sealed: string | undefined): Promise<Session
   }
 }
 
+/** The phone app says so with this header; it then also gets the session as a token in the body (the web never does). */
+export const CLIENT_HEADER = 'x-shopora-client'
+export const isMobileClient = (req: Request) => req.headers.get(CLIENT_HEADER) === 'mobile'
+
 export const cookieOptions = (maxAge = SESSION_MAX_AGE) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',

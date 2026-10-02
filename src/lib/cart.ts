@@ -7,6 +7,10 @@ export type CartItem = {
   priceCents: number
   currency: string
   quantity: number
+  /** Only present on a server cart, for the phone app and the stock hint. */
+  slug?: string
+  imageUrl?: string | null
+  stock?: number
 }
 
 const clampQty = (n: number) => Math.min(LIMITS.maxQuantityPerLine, Math.max(0, Math.floor(n)))

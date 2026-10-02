@@ -2,13 +2,21 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { orderSchema } from '@/lib/validation'
 import { getRequestUser } from '@/server/current-user'
 import { adminEmails } from '@/server/admin'
+import { clearCart } from '@/server/db/cart'
 import { saveAddressIfNew } from '@/server/db/features'
-import { createOrder, expireStaleOrders, InvalidDiscountError, lowStockAfterOrder, NoDeliveryError, OrderTooLargeError, OutOfStockError } from '@/server/db/orders'
+import { createOrder, listOrdersForUser, expireStaleOrders, InvalidDiscountError, lowStockAfterOrder, NoDeliveryError, OrderTooLargeError, OutOfStockError } from '@/server/db/orders'
 import { lowStockEmail } from '@/server/email-templates'
 import { sendEmail } from '@/server/email.service'
 import { startPayment } from '@/server/payments'
 import { paystackConfigured } from '@/server/paystack'
 import { allow, clientIp } from '@/server/rate-limit'
+
+/** The signed-in buyer's own orders (cookie on the web, bearer token on the phone). */
+export async function GET(req: NextRequest) {
+  const user = await getRequestUser(req)
+  if (!user) return NextResponse.json({ success: false, message: 'Please log in first' }, { status: 401 })
+  return NextResponse.json({ success: true, message: 'Your orders', body: { orders: await listOrdersForUser(user.id) } })
+}
 
 export async function POST(req: NextRequest) {
   // Each order takes stock, so cap how fast one address can place them.
@@ -43,6 +51,7 @@ export async function POST(req: NextRequest) {
       await saveAddressIfNew(user.id, { fullName: d.fullName, addressLine1: d.addressLine1, addressLine2: d.addressLine2, city: d.city, region: d.region, postalCode: d.postalCode, country: d.country })
         .catch((e) => console.error('saveAddressIfNew failed', e))
     }
+    if (user) await clearCart(user.id).catch((e) => console.error('clearCart failed', e)) // the cart became this order
     await alertLowStock(id)
     // If Paystack is down or not configured the order is still saved; the order page offers "Pay now".
     let paymentUrl: string | null = null
