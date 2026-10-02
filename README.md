@@ -1,7 +1,11 @@
 # Shopora
 
-A small online shop: browse products, check out, get a confirmation email, sign in with Google.
-Built for HNG15 Lesson 2. See `AGENTS.md` for the spec and milestones.
+A small online shop with a website and an Android/iOS phone app that share one API and one database: browse products, check out with
+Paystack, get a confirmation email (Mailgun), sign in with Google or email, track orders, and manage the shop as an admin.
+Built for HNG15 Lessons 2 and 3. See `AGENTS.md` for the spec and milestones, and `SUBMISSION.md` for the submission notes.
+
+- Website: https://www.shopora.website
+- Phone app: `mobile/` (Expo). The cart, login and orders are the same as the website's; add to the cart on one and it shows on the other within seconds.
 
 ```bash
 cp .env.example .env.local   # fill in DATABASE_URL at least
@@ -41,3 +45,9 @@ out for delivery and delivered. Each of those (and cancel) emails the buyer.
 
 With `ADMIN_EMAILS` set and signed in with Google: `/admin/orders` (status, resend the confirmation email), `/admin/products` (stock, hide,
 upload photos), `/admin/discounts` and `/admin/delivery`. If order emails don't arrive, open `/api/health?check=email`.
+
+## Phone app
+
+See `mobile/README.md`. Run it with `cd mobile && npm install && npx expo start`, or publish an update with
+`npx eas-cli update --branch preview --environment preview --message "…" --platform all`.
+Build the installable Android file with `npx eas-cli build -p android --profile preview`.
