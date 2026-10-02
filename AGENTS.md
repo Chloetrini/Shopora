@@ -157,9 +157,15 @@ Google Cloud Console); at the end the callback redirects to the app link with a 
 never the session. The app trades `{ code, verifier }` at `POST /api/auth/google/app` for `{ user, token }`; the code is useless without the verifier whose
 hash the app sent first, so another app catching the link gains nothing. Only `shopora:`, `exp:` and `exps:` return links are accepted.
 
+**Signing the payment browser in** (`openPayment` in the app): the secure browser the app opens for Paystack has no cookie, so the website there looked signed
+out ("Log in" in the header). The app first calls `POST /api/auth/handoff` (bearer token) for a 60-second code (own key), then opens
+`GET /api/auth/handoff?code=…&next=/api/orders/<id>/pay` in the browser: that sets the normal session cookie and `GET …/pay` starts the payment and redirects to
+Paystack, so the page you return to shows your account avatar. If the hand-off fails the app opens Paystack's URL directly.
+
 | Method & path | Auth | Returns |
 |---|---|---|
 | `POST /api/auth/google/app` | – `{ code, verifier }` | `{ user, token }` (the app's Google sign-in, see above) |
+| `POST /api/auth/handoff` | ✓ | `{ code }` (60 s) for `GET /api/auth/handoff?code&next` which sets the cookie and redirects (same-site `next` only) |
 | `GET /api/cart` | ✓ | `{ items }` (CartItem + `slug`, `imageUrl`, `stock`) |
 | `POST /api/cart` | ✓ `{ productId, quantity }` | adds; 404 unknown product, 409 `cart_full` (20 lines) |
 | `PUT /api/cart` | ✓ `{ items: [{ productId, quantity }] }` | merges a guest cart |

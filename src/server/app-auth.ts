@@ -46,3 +46,28 @@ export async function openAppCode(sealed: string, verifier: string): Promise<{ u
     return null
   }
 }
+
+/*
+ * App -> website hand-off. The app signs in with a token, but the secure browser it opens for payment has no cookie,
+ * so the website there looked signed out. The app asks for a 60-second code (while authenticated with its token) and
+ * opens `/api/auth/handoff?code=…&next=…` in that browser, which sets the normal session cookie and carries on.
+ */
+const HANDOFF_TTL = 60
+
+function handoffSecret(): string {
+  const s = process.env.SESSION_SECRET
+  if (!s || s.length < 32) throw new Error('SESSION_SECRET must be set to 32+ random characters')
+  return `${s}:shopora-web-handoff`
+}
+
+export const sealHandoff = (c: { uid: string; v: number }) => sealData(c, { password: handoffSecret(), ttl: HANDOFF_TTL })
+
+export async function openHandoff(sealed: string | null | undefined): Promise<{ uid: string; v: number } | null> {
+  if (!sealed) return null
+  try {
+    const d = await unsealData<{ uid?: unknown; v?: unknown }>(sealed, { password: handoffSecret(), ttl: HANDOFF_TTL })
+    return typeof d.uid === 'string' && typeof d.v === 'number' ? { uid: d.uid, v: d.v } : null
+  } catch {
+    return null
+  }
+}

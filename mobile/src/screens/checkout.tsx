@@ -1,6 +1,5 @@
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import * as WebBrowser from 'expo-web-browser'
 import { useEffect, useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { api, ApiError } from '../api'
@@ -8,6 +7,7 @@ import { useAuth } from '../auth'
 import { useCart } from '../cart'
 import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
+import { openPayment } from '../payment'
 import { useTheme } from '../theme'
 import type { Address } from '../types'
 import { Button, Center, Field, Note } from '../ui'
@@ -65,7 +65,7 @@ export function CheckoutScreen() {
       })
       void cart.refresh() // the server emptied the cart when the order was placed
       nav.replace('Order', { id })
-      if (paymentUrl) await WebBrowser.openBrowserAsync(paymentUrl) // pay on Paystack's page; the order screen picks up the result
+      if (paymentUrl) await openPayment(id, paymentUrl) // pay on Paystack's page; the order screen picks up the result
     } catch (e) {
       if (e instanceof ApiError && e.details) setErrors(Object.fromEntries(e.details.map((d) => [d.path, d.message])))
       setFormError(e instanceof Error ? e.message : 'Something went wrong. Try again.')

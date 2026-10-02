@@ -48,6 +48,16 @@ export function Photo({ uri, style }: { uri: string | null | undefined; style?: 
   return src ? <Image source={{ uri: src }} style={[{ backgroundColor: c.border }, style]} resizeMode="cover" /> : <View style={[{ backgroundColor: c.border }, style as ViewStyle]} />
 }
 
+/** A round badge with the person's first letter, like the one on the website. */
+export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
+  const c = useTheme()
+  return (
+    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}>
+      <Text style={{ color: c.primaryForeground, fontWeight: '700', fontSize: size * 0.42 }}>{(name.trim()[0] ?? '?').toUpperCase()}</Text>
+    </View>
+  )
+}
+
 export function Center({ children }: { children: React.ReactNode }) {
   return <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>{children}</View>
 }

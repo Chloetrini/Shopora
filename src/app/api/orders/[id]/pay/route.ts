@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
+import { siteUrl } from '@/lib/site-url'
 import { startPayment } from '@/server/payments'
 import { paystackConfigured, PaystackError } from '@/server/paystack'
 import { allow, clientIp } from '@/server/rate-limit'
@@ -19,4 +20,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     console.error('startPayment failed', e instanceof PaystackError ? e.message : e)
     return NextResponse.json({ success: false, message: 'Could not start the payment. Try again.' }, { status: 502 })
   }
+}
+
+/**
+ * The same, as a link: starts the payment and sends the browser on to Paystack. The phone app opens this right after
+ * signing the browser in, so the person lands back on the order page already logged in.
+ */
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const res = await POST(req, ctx)
+  if (res.status !== 200) return NextResponse.redirect(new URL(`/orders/${(await ctx.params).id}?payment=failed`, siteUrl()))
+  const { body } = (await res.json()) as { body: { paymentUrl: string } }
+  return NextResponse.redirect(body.paymentUrl)
 }

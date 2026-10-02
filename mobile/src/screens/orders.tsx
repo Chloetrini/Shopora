@@ -1,6 +1,5 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
-import * as WebBrowser from 'expo-web-browser'
 import { useCallback, useEffect, useState } from 'react'
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native'
 import { api } from '../api'
@@ -8,6 +7,7 @@ import { useAuth } from '../auth'
 import { ORDER_POLL_MS } from '../config'
 import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
+import { openPayment } from '../payment'
 import { useTheme } from '../theme'
 import { isPaid, STATUS_LABEL, type OrderSummary, type OrderView } from '../types'
 import { Button, Center, Note } from '../ui'
@@ -69,8 +69,7 @@ export function OrderScreen({ route }: { route: { params: RootStack['Order'] } }
   async function pay() {
     setBusy(true)
     try {
-      const { paymentUrl } = await api<{ paymentUrl: string }>(`/api/orders/${id}/pay`, { method: 'POST' })
-      await WebBrowser.openBrowserAsync(paymentUrl)
+      await openPayment(id)
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not start the payment.')

@@ -3,9 +3,9 @@ import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { StatusBar } from 'expo-status-bar'
-import { useColorScheme } from 'react-native'
+import { Pressable, Text, useColorScheme } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { AuthProvider } from './auth'
+import { AuthProvider, useAuth } from './auth'
 import { CartProvider, useCart } from './cart'
 import type { RootStack } from './navigation'
 import { AccountScreen, LoginScreen } from './screens/account'
@@ -14,16 +14,28 @@ import { CheckoutScreen } from './screens/checkout'
 import { OrderScreen, OrdersScreen } from './screens/orders'
 import { ProductScreen, ShopScreen } from './screens/shop'
 import { useTheme } from './theme'
+import { Avatar } from './ui'
 
 const Stack = createNativeStackNavigator<RootStack>()
 const Tab = createBottomTabNavigator()
+
+/** Top right on every tab: your initial when signed in, "Log in" when not. */
+function HeaderAccount({ onPress }: { onPress: () => void }) {
+  const c = useTheme()
+  const { user } = useAuth()
+  return (
+    <Pressable onPress={onPress} accessibilityLabel={user ? `Account of ${user.fullName}` : 'Log in'} style={{ marginRight: 14 }}>
+      {user ? <Avatar name={user.fullName} size={32} /> : <Text style={{ color: c.primary, fontWeight: '600' }}>Log in</Text>}
+    </Pressable>
+  )
+}
 
 function Tabs() {
   const c = useTheme()
   const cart = useCart()
   const icon = (name: keyof typeof Ionicons.glyphMap) => ({ color, size }: { color: string; size: number }) => <Ionicons name={name} color={color} size={size} />
   return (
-    <Tab.Navigator screenOptions={{ tabBarActiveTintColor: c.primary, tabBarInactiveTintColor: c.muted, tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border }, headerStyle: { backgroundColor: c.surface }, headerTintColor: c.foreground }}>
+    <Tab.Navigator screenOptions={({ navigation }) => ({ headerRight: () => <HeaderAccount onPress={() => navigation.navigate('Account')} />, tabBarActiveTintColor: c.primary, tabBarInactiveTintColor: c.muted, tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border }, headerStyle: { backgroundColor: c.surface }, headerTintColor: c.foreground })}>
       <Tab.Screen name="Shop" component={ShopScreen} options={{ title: 'Shopora', tabBarIcon: icon('storefront-outline') }} />
       <Tab.Screen name="Cart" component={CartScreen} options={{ title: 'Your cart', tabBarIcon: icon('bag-outline'), tabBarBadge: cart.count > 0 ? cart.count : undefined }} />
       <Tab.Screen name="Orders" component={OrdersScreen} options={{ title: 'Your orders', tabBarIcon: icon('receipt-outline') }} />

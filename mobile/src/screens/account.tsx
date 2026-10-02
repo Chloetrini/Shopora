@@ -7,7 +7,7 @@ import { API_URL } from '../config'
 import { useAuth } from '../auth'
 import type { RootStack } from '../navigation'
 import { useTheme } from '../theme'
-import { Button, Center, Field, Note } from '../ui'
+import { Avatar, Button, Center, Field, Note } from '../ui'
 
 type Nav = NativeStackNavigationProp<RootStack>
 
@@ -29,9 +29,12 @@ export function AccountScreen() {
   }
   return (
     <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={{ padding: 16, gap: 12 }}>
-      <View style={{ backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 16 }}>
-        <Text style={{ color: c.foreground, fontSize: 20, fontWeight: '700' }}>{user.fullName}</Text>
-        <Text style={{ color: c.muted }}>{user.email}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 16 }}>
+        <Avatar name={user.fullName} size={56} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ color: c.foreground, fontSize: 20, fontWeight: '700' }}>{user.fullName}</Text>
+          <Text style={{ color: c.muted }}>{user.email}</Text>
+        </View>
       </View>
       <Button label="Open the website" variant="outline" onPress={() => WebBrowser.openBrowserAsync(API_URL)} />
       <Button label="Log out" variant="outline" onPress={logout} />

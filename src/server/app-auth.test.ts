@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { challengeFor } from './google'
-import { openAppCode, sealAppCode, validAppRedirect, validChallenge } from './app-auth'
+import { openAppCode, openHandoff, sealAppCode, sealHandoff, validAppRedirect, validChallenge } from './app-auth'
 import { sealSession, unsealSession } from './session'
 
 process.env.SESSION_SECRET = 'y'.repeat(40)
@@ -41,5 +41,21 @@ describe('one-time code', () => {
   })
   it('rejects garbage', async () => {
     expect(await openAppCode('nonsense', verifier)).toBeNull()
+  })
+})
+
+describe('web hand-off code', () => {
+  it('round-trips', async () => {
+    expect(await openHandoff(await sealHandoff({ uid: 'u1', v: 4 }))).toEqual({ uid: 'u1', v: 4 })
+  })
+  it('is not a session token or a Google code, and not the other way round', async () => {
+    const h = await sealHandoff({ uid: 'u1', v: 4 })
+    expect(await unsealSession(h)).toBeNull()
+    expect(await openHandoff(await sealSession({ uid: 'u1', v: 4 }))).toBeNull()
+    expect(await openHandoff(await sealAppCode({ uid: 'u1', v: 4, ch: 'x' }))).toBeNull()
+  })
+  it('rejects junk and nothing', async () => {
+    expect(await openHandoff('nonsense')).toBeNull()
+    expect(await openHandoff(null)).toBeNull()
   })
 })
