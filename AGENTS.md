@@ -126,10 +126,13 @@ Register/login, Google OAuth (Section 5 rules), my orders page.
 Vercel deploy, env vars, Google redirect URIs, health check, README.
 
 ### 🟡 Lesson 3 — the phone app (HNG15; website stays as it is)
-A real mobile app (Expo / React Native, in `mobile/`) that uses **the same API and database** as the website.
+A real mobile app (Expo / React Native, in `mobile/`; the root `tsc`, eslint and the Vercel build ignore that folder) that uses **the same API and database** as the website.
 A user logs in on both; adding to the cart on the web shows up on the phone almost at once (and the other way round).
 - **Milestone 7 ✅ Server cart + token login + JSON endpoints** (this section's API). Done when: typecheck, lint, test, build pass; cart SQL verified on Neon with a rollback test.
-- **Milestone 8 ⬜ Mobile app** (`mobile/`): login/register, products, product page, cart, checkout (Paystack in the browser), my orders and tracking.
+- **Milestone 8 ✅ Mobile app** (`mobile/`, Expo SDK 57 + React Navigation): shop with search and categories, product page, login/register,
+  server cart (polled every 2 s), checkout with saved address and discount code, Paystack in the in-app browser, my orders with live status.
+  Signed-out visitors can browse; adding to the cart sends them to log in (the cart belongs to the account). Done when: `tsc` and
+  `expo export --platform android` pass, the token login test passes. **Not yet tried on a real phone** (that is milestone 9).
 - **Milestone 9 ⬜ Phone testing**: publish with EAS Update, open in Expo Go on the phone, test web to phone cart sync both ways.
 
 **Cart (signed in = server, guest = browser).** Table `cart_items(user_id, product_id, quantity)`; names and prices are always
