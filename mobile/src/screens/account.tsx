@@ -4,6 +4,7 @@ import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { ScrollView, Text, View } from 'react-native'
 import { api } from '../api'
+import { openSignedIn } from '../payment'
 import { API_URL } from '../config'
 import { useAuth } from '../auth'
 import type { RootStack } from '../navigation'
@@ -39,7 +40,7 @@ export function AccountScreen() {
         </View>
       </View>
       <Button label="Edit profile" onPress={() => nav.navigate('Profile')} />
-      <Button label="Open the website" variant="outline" onPress={() => WebBrowser.openBrowserAsync(API_URL)} />
+      <Button label="Open the website" variant="outline" onPress={async () => { if (!(await openSignedIn('/'))) await WebBrowser.openBrowserAsync(API_URL) }} />
       <Button label="Log out" variant="outline" onPress={logout} />
     </ScrollView>
   )
