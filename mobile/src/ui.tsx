@@ -5,8 +5,8 @@ import { API_URL } from './config'
 import { useAuth } from './auth'
 import { useTheme } from './theme'
 
-export function Button({ label, onPress, disabled, busy, variant = 'primary', style }: {
-  label: string; onPress: () => void; disabled?: boolean; busy?: boolean; variant?: 'primary' | 'outline'; style?: ViewStyle
+export function Button({ label, onPress, disabled, busy, variant = 'primary', style, icon }: {
+  label: string; onPress: () => void; disabled?: boolean; busy?: boolean; variant?: 'primary' | 'outline'; style?: ViewStyle; icon?: React.ReactNode
 }) {
   const c = useTheme()
   const off = disabled || busy
@@ -23,7 +23,10 @@ export function Button({ label, onPress, disabled, busy, variant = 'primary', st
       ]}
     >
       {busy ? <ActivityIndicator color={variant === 'primary' ? c.primaryForeground : c.foreground} /> : (
-        <Text style={{ color: variant === 'primary' ? c.primaryForeground : c.foreground, fontWeight: '600', fontSize: 15 }}>{label}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {icon}
+          <Text style={{ color: variant === 'primary' ? c.primaryForeground : c.foreground, fontWeight: '600', fontSize: 15 }}>{label}</Text>
+        </View>
       )}
     </Pressable>
   )
@@ -49,6 +52,11 @@ export function Photo({ uri, style }: { uri: string | null | undefined; style?: 
   const c = useTheme()
   const src = imageUri(uri)
   return src ? <Image source={{ uri: src }} style={[{ backgroundColor: c.border }, style]} resizeMode="cover" /> : <View style={[{ backgroundColor: c.border }, style as ViewStyle]} />
+}
+
+/** The Google "G" in Google's four colours (a picture, so it needs no extra native code in the app). */
+export function GoogleLogo({ size = 20 }: { size?: number }) {
+  return <Image source={require('../assets/google-g.png')} style={{ width: size, height: size }} />
 }
 
 /** A round badge with the person's first letter, like the one on the website. */

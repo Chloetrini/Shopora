@@ -9,7 +9,7 @@ import { API_URL } from '../config'
 import { useAuth } from '../auth'
 import type { RootStack } from '../navigation'
 import { useTheme } from '../theme'
-import { Avatar, Button, Center, Field, Note, VerifyNotice } from '../ui'
+import { Avatar, Button, GoogleLogo, Center, Field, Note, VerifyNotice } from '../ui'
 
 type Nav = NativeStackNavigationProp<RootStack>
 
@@ -109,7 +109,7 @@ export function LoginScreen({ route }: { route: { params?: RootStack['Login'] } 
         <Text style={{ color: c.muted }}>or</Text>
         <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
       </View>
-      <Button label={mode === 'login' ? 'Continue with Google' : 'Sign up with Google'} variant="outline" onPress={google} disabled={busy} />
+      <Button label={mode === 'login' ? 'Continue with Google' : 'Sign up with Google'} variant="outline" icon={<GoogleLogo />} onPress={google} disabled={busy} />
       <Text onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} style={{ color: c.primary, textAlign: 'center', marginTop: 20 }}>
         {mode === 'login' ? 'New here? Create an account' : 'Already have an account? Log in'}
       </Text>

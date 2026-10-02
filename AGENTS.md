@@ -167,6 +167,10 @@ by the session's `userId` (rule 1); other users' carts are unreachable by constr
 `Authorization: Bearer <token>`; `getRequestUser` accepts the cookie first, then the bearer. The web never receives the token
 (its cookie is httpOnly on purpose). Logging out on the phone = deleting the token.
 
+**Native modules and over-the-air updates (gotcha).** `eas update` ships only JavaScript and assets. An installed APK (built by `eas build`) only has the native modules that were in the app when it
+was built, and updates are matched by `runtimeVersion` (the app version, "1.0.0"). So a new library with native code (say `react-native-svg`) must come with a new build and a new
+`version`/runtime, never as a plain update, or the installed app crashes. Pictures, JS and styles are safe to ship as updates (the Google "G" on the login button is a PNG for this reason).
+
 **Token beats cookie (gotcha, hit in testing).** A phone's networking layer keeps cookies from earlier logins (the password login `Set-Cookie`) and sends them with every
 request. If the server preferred the cookie, an app that later signed in as the admin was still treated as the old non-admin account: the Admin tab showed (the app's own
 state said admin) but every admin list answered "Not found". So `getRequestUser` takes an explicit `Authorization: Bearer` token **before** the cookie, and the app's
