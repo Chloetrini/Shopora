@@ -49,5 +49,5 @@ html { scroll-behavior: smooth; }
 body { background: var(--background); color: var(--foreground); }
 :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .font-display { font-family: var(--font-display); }
-.hero-glow { background: radial-gradient(60% 80% at 80% 10%, color-mix(in srgb, var(--primary) 28%, transparent), transparent 70%), radial-gradient(50% 60% at 0% 100%, color-mix(in srgb, var(--gold) 22%, transparent), transparent 70%); }
+.hero-glow { background-image: linear-gradient(135deg, var(--primary-soft), var(--surface) 60%); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; animation: none !important; } }

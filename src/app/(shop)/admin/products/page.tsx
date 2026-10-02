@@ -23,7 +23,7 @@ export default async function AdminProductsPage() {
       <ul className="space-y-3">
         {products.map((p) => (
           <li key={p.id} className="flex gap-4 rounded-2xl border border-border bg-surface p-4">
-            <ProductImage slug={p.slug} category={p.category} name={p.name} imageUrl={p.imageUrl} className="size-20 shrink-0 rounded-xl" />
+            <ProductImage name={p.name} imageUrl={p.imageUrl} className="size-20 shrink-0 rounded-xl" />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <Link href={`/products/${p.slug}`} className="font-medium hover:underline">{p.name}</Link>

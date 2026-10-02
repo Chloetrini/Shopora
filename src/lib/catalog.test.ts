@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { applyCatalogFilters, artKind, catalogHref, parseCatalogQuery, toneFor } from './catalog'
+import { applyCatalogFilters, catalogHref, parseCatalogQuery } from './catalog'
 
 const items = [
   { name: 'Canvas tote', description: 'Cotton bag', category: 'bags', priceCents: 1800000 },
@@ -33,18 +33,5 @@ describe('catalogHref', () => {
     expect(catalogHref({})).toBe('/#shop')
     expect(catalogHref({ category: 'bags', sort: 'featured' })).toBe('/?category=bags#shop')
     expect(catalogHref({ category: 'home', sort: 'name', search: 'a b' })).toBe('/?category=home&sort=name&q=a+b#shop')
-  })
-})
-
-describe('art', () => {
-  it('picks a drawing from the slug, then the category', () => {
-    expect(artKind('weekender-backpack', 'bags')).toBe('backpack')
-    expect(artKind('canvas-tote', 'bags')).toBe('tote')
-    expect(artKind('travel-earbuds', 'tech')).toBe('headphones')
-    expect(artKind('mystery-item', 'home')).toBe('candle')
-    expect(artKind('mystery-item', 'unknown')).toBe('tote')
-  })
-  it('gives a product the same colours every time', () => {
-    expect(toneFor('ceramic-mug')).toBe(toneFor('ceramic-mug'))
   })
 })

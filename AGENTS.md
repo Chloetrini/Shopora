@@ -139,7 +139,8 @@ Vercel deploy, env vars, Google redirect URIs, health check, README.
 - **Look:** deep teal accent, midnight ink, Fraunces (headings) and Inter; light and dark via the `dark` class (toggle in the header,
   key `shopora-theme`, pre-paint script in `app/layout.tsx`). The toggle renders both icons and lets CSS choose (no hydration mismatch).
   No orange. Tokens live in `globals.css`; product drawings use their own palette (`lib/catalog.ts` TONES).
-- **Product images:** real photos are hotlinked from Unsplash (`products.image_url` =
+- **Images load plainly:** no drawn stand-ins. `ProductImage` shows a grey pulsing skeleton until the photo is ready and fades it in; no photo or a failed one is a neutral box with an icon. `(shop)/loading.tsx` is the page-level skeleton. The hero has no border (a smooth gradient, no radial glow: that had visible hard edges).
+- **Product images (history):** real photos are hotlinked from Unsplash (`products.image_url` =
   `https://unsplash.com/photos/<id>/download?force=true&w=900`, found by search; NOT verified from the build sandbox, which blocks
   Unsplash). `ProductImage` draws an illustration underneath and removes the photo if it fails, so a failed photo is never a broken box.
   For a dependable site, download the photos and host them (Vercel Blob or `public/`), then update `image_url`.

@@ -1,10 +1,8 @@
 import Link from 'next/link'
 import { PackageCheck, ShieldCheck, Mail, LogIn } from 'lucide-react'
 import { ProductCard } from '@/components/shop/product-card'
-import { ProductImage } from '@/components/shop/product-image'
-import { SITE } from '@/constants/site'
+import { Hero } from '@/components/shop/hero'
 import { applyCatalogFilters, catalogHref, CATEGORIES, parseCatalogQuery, SORTS } from '@/lib/catalog'
-import { formatMoney } from '@/lib/money'
 import { getSessionUser } from '@/server/current-user'
 import { ratingSummaries, wishlistProductIds } from '@/server/db/features'
 import { listProducts } from '@/server/db/products'
@@ -33,32 +31,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      {!filtered && (
-        <section className="hero-glow -mx-4 rounded-3xl border border-border bg-surface px-6 py-10 sm:mx-0 sm:px-12 sm:py-16">
-          <div className="grid items-center gap-10 lg:grid-cols-2">
-            <div>
-              <p className="text-sm font-medium text-primary">New season, everyday essentials</p>
-              <h1 className="font-display mt-3 text-4xl font-semibold leading-tight sm:text-6xl">{SITE.tagline}</h1>
-              <p className="mt-4 max-w-md text-muted-foreground">Bags, watches, tech and home pieces chosen to last. Order in minutes and follow it all the way to your door.</p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="#shop" className="rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground hover:opacity-90">Shop now</Link>
-                <Link href="/track" className="rounded-full border border-border px-6 py-3 font-medium hover:border-primary">Track an order</Link>
-              </div>
-            </div>
-            <div className="grid grid-cols-3 gap-3">
-              {featured.map((p, i) => (
-                <Link key={p.id} href={`/products/${p.slug}`} className={`group overflow-hidden rounded-2xl border border-border ${i === 1 ? 'mt-8' : ''}`}>
-                  <ProductImage slug={p.slug} category={p.category} name={p.name} imageUrl={p.imageUrl} className="aspect-[3/4]" />
-                  <div className="bg-surface p-2">
-                    <p className="truncate text-xs font-medium">{p.name}</p>
-                    <p className="text-xs text-muted-foreground">{formatMoney(p.priceCents, p.currency)}</p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
+      {!filtered && <Hero featured={featured} />}
 
       {!filtered && (
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

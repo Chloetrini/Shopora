@@ -52,37 +52,3 @@ export function catalogHref(f: { category?: string; sort?: string; search?: stri
   const s = p.toString()
   return `/${s ? `?${s}` : ''}#shop`
 }
-
-export type ArtKind =
-  | 'tote' | 'mug' | 'lamp' | 'notebook' | 'bottle' | 'beanie'
-  | 'backpack' | 'sunglasses' | 'watch' | 'headphones' | 'candle' | 'plant'
-
-const KEYWORDS: [RegExp, ArtKind][] = [
-  [/backpack/, 'backpack'], [/tote/, 'tote'], [/mug/, 'mug'], [/lamp/, 'lamp'], [/notebook/, 'notebook'],
-  [/bottle/, 'bottle'], [/beanie/, 'beanie'], [/sunglass/, 'sunglasses'], [/watch/, 'watch'],
-  [/headphone|earbud/, 'headphones'], [/candle/, 'candle'], [/planter|succulent|plant/, 'plant'],
-]
-const BY_CATEGORY: Record<string, ArtKind> = {
-  bags: 'tote', accessories: 'watch', tech: 'headphones', home: 'candle', stationery: 'notebook', outdoors: 'bottle', clothing: 'beanie',
-}
-
-/** Which drawing stands in for a product whose photo is missing or fails to load. */
-export function artKind(slug: string, category: string): ArtKind {
-  return KEYWORDS.find(([re]) => re.test(slug))?.[1] ?? BY_CATEGORY[category] ?? 'tote'
-}
-
-export const TONES = [
-  { bg1: '#e9edf2', bg2: '#ccd6e2', c1: '#3a4a5f', c2: '#1f2a3a' },
-  { bg1: '#e2ece6', bg2: '#c2d8cc', c1: '#2f6b57', c2: '#1d4538' },
-  { bg1: '#e6e9f5', bg2: '#c8d0ea', c1: '#34468f', c2: '#212d5e' },
-  { bg1: '#f6eed6', bg2: '#ebdba0', c1: '#b8861b', c2: '#7d5a0c' },
-  { bg1: '#f1e2ec', bg2: '#dfc1d4', c1: '#8a3a68', c2: '#5c2444' },
-  { bg1: '#e8e8e6', bg2: '#cfcfcb', c1: '#2b2b2b', c2: '#111111' },
-] as const
-
-/** Same product, same colours, every time (a simple string hash). */
-export function toneFor(slug: string) {
-  let h = 0
-  for (const ch of slug) h = (h * 31 + ch.charCodeAt(0)) >>> 0
-  return TONES[h % TONES.length]
-}

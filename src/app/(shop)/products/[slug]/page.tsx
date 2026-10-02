@@ -38,8 +38,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <Link href="/#shop" className="hover:underline">Shop</Link> / <Link href={catalogHref({ category: product.category })} className="hover:underline">{categoryLabel(product.category)}</Link> / <span className="text-foreground">{product.name}</span>
       </nav>
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="group overflow-hidden rounded-3xl border border-border">
-          <ProductImage slug={product.slug} category={product.category} name={product.name} imageUrl={product.imageUrl} className="aspect-square" />
+        <div className="group overflow-hidden rounded-3xl">
+          <ProductImage name={product.name} imageUrl={product.imageUrl} className="aspect-square" />
         </div>
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{categoryLabel(product.category)}</p>

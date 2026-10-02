@@ -12,7 +12,7 @@ export function ProductCard({ product, wished = false, signedIn = false, rating 
   return (
     <li className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-lg">
       <Link href={`/products/${product.slug}`} className="relative block" aria-label={product.name}>
-        <ProductImage slug={product.slug} category={product.category} name={product.name} imageUrl={product.imageUrl} className="aspect-[4/5]" />
+        <ProductImage name={product.name} imageUrl={product.imageUrl} className="aspect-[4/5]" />
         {low && <span className="absolute left-3 top-3 rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-ink-foreground">Only {product.stock} left</span>}
         {product.stock === 0 && <span className="absolute left-3 top-3 rounded-full bg-ink px-2.5 py-1 text-xs font-medium text-ink-foreground">Sold out</span>}
         <WishlistButton productId={product.id} initial={wished} signedIn={signedIn} className="absolute right-3 top-3" />
