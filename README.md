@@ -7,6 +7,8 @@ Built for HNG15 Lessons 2 and 3. See `AGENTS.md` for the spec and milestones, an
 - Website: https://www.shopora.website
 - Phone app: `mobile/` (Expo). The cart, login and orders are the same as the website's; add to the cart on one and it shows on the other within seconds.
 
+See **RUN_LOCALLY.md** for the full step-by-step guide.
+
 ```bash
 cp .env.example .env.local   # fill in DATABASE_URL at least
 npm install

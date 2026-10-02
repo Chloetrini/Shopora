@@ -7,7 +7,7 @@ HNG15 Internship, Lesson 2 (shop website) and Lesson 3 (mobile app).
 | What | Where |
 |---|---|
 | Live website | https://www.shopora.website |
-| Code (website and app) | https://github.com/Chloetrini/Shopora, branch `claude/milestone-1-foundation` (the website lives in the repo root, the phone app in `mobile/`) |
+| Code (website and app) | https://github.com/Chloetrini/Shopora, branch `chloe/milestone-1-foundation` (the default branch) (the website lives in the repo root, the phone app in `mobile/`) |
 | Phone app (Expo Go) | https://expo.dev/accounts/chloetrini/projects/shopora (open the latest update and tap "Open in Expo Go") |
 | Installable Android app | the `.apk` from the latest "preview" build on the same Expo project page, under Builds |
 | Spec and rules | `AGENTS.md` in the repo |
