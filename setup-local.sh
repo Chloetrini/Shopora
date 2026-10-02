@@ -50,9 +50,15 @@ if [ -z "$(current DATABASE_URL)" ]; then
 fi
 echo "Settings saved in .env.local (this file is never uploaded to GitHub)."
 
-say "3/4  Installing the project's packages (a few minutes the first time)"
+say "3/4  Installing the website's packages (a few minutes the first time)"
 npm install
 
-say "4/4  Starting the website"
-echo "When you see 'Ready', open  http://localhost:3000  in your browser. Press Ctrl+C here to stop it."
-exec npm run dev
+say "4/4  Installing the phone app's packages too"
+(cd mobile && npm install)
+
+say "All set"
+echo "Start the website only:            npm run dev        (then open http://localhost:3000)"
+echo "Start the website AND the app:     bash start-all.sh  (then scan the QR code with Expo Go on your phone)"
+echo
+read -r -p "Start the website now? [Y/n] " GO
+case "$GO" in n|N) echo "OK. Run  npm run dev  whenever you are ready.";; *) exec npm run dev;; esac

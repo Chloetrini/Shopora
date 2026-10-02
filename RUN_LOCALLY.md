@@ -11,6 +11,8 @@ After step 1 below, run **one command** in the project folder and it does steps 
 bash setup-local.sh
 ```
 
+It installs the website **and** the phone app, then offers to start the website. Next time, run `bash start-all.sh` to start the website and the app together (it finds your Wi-Fi address and prints a QR code for Expo Go).
+
 ## 1. Get the code
 
 ```bash
