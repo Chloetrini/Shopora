@@ -30,3 +30,13 @@ export const STATUS_LABEL: Record<string, string> = {
   shipped: 'Shipped', out_for_delivery: 'Out for delivery', delivered: 'Delivered', cancelled: 'Cancelled',
 }
 export const isPaid = (status: string) => status !== 'pending' && status !== 'cancelled'
+
+export type AdminOrder = {
+  id: string; email: string; fullName: string; status: string; totalCents: number; currency: string
+  createdAt: string; itemCount: number; refundNeeded: boolean; next: string[]
+}
+export type AdminProduct = Product & { active: boolean; hasUploadedImage: boolean }
+export type DiscountRow = {
+  code: string; percentOff: number | null; amountOffCents: number | null; active: boolean
+  expiresAt: string | null; maxUses: number | null; usedCount: number
+}

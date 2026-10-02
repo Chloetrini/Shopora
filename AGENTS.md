@@ -133,6 +133,11 @@ A user logs in on both; adding to the cart on the web shows up on the phone almo
   server cart (polled every 2 s), checkout with saved address and discount code, Paystack in the in-app browser, my orders with live status.
   Signed-out visitors can browse; adding to the cart sends them to log in (the cart belongs to the account). Done when: `tsc` and
   `expo export --platform android` pass, the token login test passes. **Not yet tried on a real phone** (that is milestone 9).
+- **Milestone 10 ✅ Admin in the app**: an **Admin** tab, shown only when `user.isAdmin`, with Orders (move status, cancel, resend email, send missing emails), Products
+  (add, stock, hide/show, photo from the gallery, shrunk to 1400 px JPEG on the phone) and Discounts (create, on/off). It uses the same admin endpoints as the website;
+  the new `GET` list endpoints answer 404 to non-admins (test in `admin-api.test.ts`).
+- **Milestones 11 and 12 (planned, in this order):** accounts (confirmation email, welcome email for email and Google sign-ups, forgot/reset password; an unconfirmed
+  email does **not** block login, a banner offers Resend; existing accounts count as confirmed), then a better profile (photo, phone, change or set password, delete account), on the website and in the app.
 - **Milestone 9 🟡 Phone testing**: published with EAS Update (Expo account `chloetrini`, project `@chloetrini/shopora`, id `2bfc96ad-2189-4eed-8ab2-cf773801ac1f`,
   branch `preview`). Open in Expo Go: `exp://u.expo.dev/2bfc96ad-2189-4eed-8ab2-cf773801ac1f/group/<update group id>` or the QR on the update's page
   in the Expo dashboard. **Still to do by hand:** test on a real phone, web to phone cart sync both ways. To publish a new version:
@@ -166,6 +171,7 @@ Paystack, so the page you return to shows your account avatar. If the hand-off f
 |---|---|---|
 | `POST /api/auth/google/app` | – `{ code, verifier }` | `{ user, token }` (the app's Google sign-in, see above) |
 | `POST /api/auth/handoff` | ✓ | `{ code }` (60 s) for `GET /api/auth/handoff?code&next` which sets the cookie and redirects (same-site `next` only) |
+| `GET /api/admin/orders`, `GET /api/admin/products`, `GET /api/admin/discounts` | admin | the lists for the app's Admin tab (orders carry `next`: the statuses each may move to); anyone else gets 404 |
 | `GET /api/cart` | ✓ | `{ items }` (CartItem + `slug`, `imageUrl`, `stock`) |
 | `POST /api/cart` | ✓ `{ productId, quantity }` | adds; 404 unknown product, 409 `cart_full` (20 lines) |
 | `PUT /api/cart` | ✓ `{ items: [{ productId, quantity }] }` | merges a guest cart |

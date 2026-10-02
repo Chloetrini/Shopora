@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { productCreateSchema } from '@/lib/validation'
-import { createProduct } from '@/server/db/features'
+import { createProduct, listAllProducts } from '@/server/db/features'
 import { ok, parseJson } from '@/server/http'
 import { requireAdmin } from '@/server/require-user'
 
@@ -13,3 +13,12 @@ export async function POST(req: NextRequest) {
   const product = await createProduct(parsed.data)
   return ok('Product added', product, 201)
 }
+
+/** Admin only: every product, hidden ones included (the phone app's product manager). */
+export async function GET(req: NextRequest) {
+  const a = await requireAdmin(req)
+  if ('res' in a) return a.res
+  return ok('Products', { products: await listAllProducts() })
+}
+
+export const dynamic = 'force-dynamic'

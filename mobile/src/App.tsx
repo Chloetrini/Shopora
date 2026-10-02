@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from './auth'
 import { CartProvider, useCart } from './cart'
 import type { RootStack } from './navigation'
 import { AccountScreen, LoginScreen } from './screens/account'
+import { AdminScreen } from './screens/admin'
 import { CartScreen } from './screens/cart'
 import { CheckoutScreen } from './screens/checkout'
 import { OrderScreen, OrdersScreen } from './screens/orders'
@@ -33,12 +34,14 @@ function HeaderAccount({ onPress }: { onPress: () => void }) {
 function Tabs() {
   const c = useTheme()
   const cart = useCart()
+  const { user } = useAuth()
   const icon = (name: keyof typeof Ionicons.glyphMap) => ({ color, size }: { color: string; size: number }) => <Ionicons name={name} color={color} size={size} />
   return (
     <Tab.Navigator screenOptions={({ navigation }) => ({ headerRight: () => <HeaderAccount onPress={() => navigation.navigate('Account')} />, tabBarActiveTintColor: c.primary, tabBarInactiveTintColor: c.muted, tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border }, headerStyle: { backgroundColor: c.surface }, headerTintColor: c.foreground })}>
       <Tab.Screen name="Shop" component={ShopScreen} options={{ title: 'Shopora', tabBarIcon: icon('storefront-outline') }} />
       <Tab.Screen name="Cart" component={CartScreen} options={{ title: 'Your cart', tabBarIcon: icon('bag-outline'), tabBarBadge: cart.count > 0 ? cart.count : undefined }} />
       <Tab.Screen name="Orders" component={OrdersScreen} options={{ title: 'Your orders', tabBarIcon: icon('receipt-outline') }} />
+      {user?.isAdmin && <Tab.Screen name="Admin" component={AdminScreen} options={{ title: 'Admin', tabBarIcon: icon('construct-outline') }} />}
       <Tab.Screen name="Account" component={AccountScreen} options={{ tabBarIcon: icon('person-outline') }} />
     </Tab.Navigator>
   )

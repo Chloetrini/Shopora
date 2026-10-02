@@ -26,7 +26,14 @@
     },
     "plugins": [
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Shopora uses your photos so you can add product pictures.",
+          "cameraPermission": "Shopora uses the camera so you can take product pictures."
+        }
+      ]
     ],
     "extra": {
       "apiUrl": "https://www.shopora.website",

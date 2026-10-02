@@ -32,3 +32,16 @@ export async function api<T = unknown>(path: string, opts: { method?: string; bo
 
 /** Product photos come back as paths on the shop's own address; others are full links. */
 export const imageUri = (u: string | null | undefined) => (u ? (/^https?:/i.test(u) ? u : `${API_URL}${u}`) : null)
+
+/** Uploads raw bytes (a product photo). The server decides the type from the bytes themselves. */
+export async function apiUpload<T = unknown>(path: string, method: string, bytes: Blob): Promise<T> {
+  let res: Response
+  try {
+    res = await fetch(`${API_URL}${path}`, { method, headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: bytes })
+  } catch {
+    throw new ApiError('Could not reach the shop. Check your connection and try again.', 0)
+  }
+  const json = await res.json().catch(() => null)
+  if (!res.ok) throw new ApiError(json?.message ?? 'Something went wrong. Try again.', res.status)
+  return json?.body as T
+}

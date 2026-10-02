@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { discountCreateSchema } from '@/lib/validation'
-import { createDiscount, DiscountExistsError } from '@/server/db/features'
+import { createDiscount, DiscountExistsError, listDiscounts } from '@/server/db/features'
 import { fail, ok, parseJson } from '@/server/http'
 import { requireAdmin } from '@/server/require-user'
 
@@ -24,3 +24,11 @@ export async function POST(req: NextRequest) {
     throw e
   }
 }
+
+export async function GET(req: NextRequest) {
+  const a = await requireAdmin(req)
+  if ('res' in a) return a.res
+  return ok('Codes', { codes: await listDiscounts() })
+}
+
+export const dynamic = 'force-dynamic'
