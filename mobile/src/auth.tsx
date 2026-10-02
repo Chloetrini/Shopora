@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, ApiError, setToken } from './api'
+import { googleSignIn } from './google'
 import type { User } from './types'
 
 const KEY = 'shopora_token'
@@ -10,6 +11,7 @@ type AuthApi = {
   ready: boolean
   login: (email: string, password: string) => Promise<void>
   register: (fullName: string, email: string, password: string) => Promise<void>
+  loginWithGoogle: () => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -54,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ready,
       login: async (email, password) => finish(await api('/api/auth/login', { method: 'POST', body: { email, password } })),
       register: async (fullName, email, password) => finish(await api('/api/auth/register', { method: 'POST', body: { fullName, email, password } })),
+      loginWithGoogle: async () => finish(await api('/api/auth/google/app', { method: 'POST', body: await googleSignIn() })),
       logout: async () => {
         setToken(null)
         setUser(null)

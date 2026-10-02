@@ -41,7 +41,8 @@ export const cookieOptions = (maxAge = SESSION_MAX_AGE) => ({
 /** Short-lived cookie carrying state, PKCE verifier and `next` across the Google round trip. */
 export const OAUTH_COOKIE = 'shopora_oauth'
 export const OAUTH_MAX_AGE = 10 * 60
-export type OAuthState = { state: string; verifier: string; next: string }
+/** `app` is set when the phone app started the sign-in: where to send the person back, and the app's PKCE challenge. */
+export type OAuthState = { state: string; verifier: string; next: string; app?: { redirect: string; challenge: string } }
 
 export const sealOAuth = async (d: OAuthState) => sealData(d, { password: secret(), ttl: OAUTH_MAX_AGE })
 
@@ -50,7 +51,7 @@ export async function unsealOAuth(sealed: string | undefined): Promise<OAuthStat
   try {
     const d = await unsealData<Partial<OAuthState>>(sealed, { password: secret(), ttl: OAUTH_MAX_AGE })
     return typeof d.state === 'string' && typeof d.verifier === 'string' && typeof d.next === 'string'
-      ? { state: d.state, verifier: d.verifier, next: d.next }
+      ? { state: d.state, verifier: d.verifier, next: d.next, app: d.app && typeof d.app.redirect === 'string' && typeof d.app.challenge === 'string' ? d.app : undefined }
       : null
   } catch {
     return null

@@ -149,10 +149,17 @@ by the session's `userId` (rule 1); other users' carts are unreachable by constr
 **Token login for the app.** Same `/api/auth/login` and `/api/auth/register`; when the request has the header
 `x-shopora-client: mobile` the body also contains `token` (the same sealed session as the cookie). The app sends
 `Authorization: Bearer <token>`; `getRequestUser` accepts the cookie first, then the bearer. The web never receives the token
-(its cookie is httpOnly on purpose). Logging out on the phone = deleting the token. Google sign-in is web only for now.
+(its cookie is httpOnly on purpose). Logging out on the phone = deleting the token.
+
+**Google sign-in for the app** (`server/app-auth.ts`): the app opens `GET /api/auth/google?app_redirect=<shopora:// or exp:// link>&app_challenge=<PKCE
+challenge>` in the secure browser sheet (`WebBrowser.openAuthSessionAsync`). The website's Google flow runs unchanged (same Google redirect URI, nothing new in
+Google Cloud Console); at the end the callback redirects to the app link with a **one-time code** (sealed with its own key, 2 minutes) or `?error=<code>`,
+never the session. The app trades `{ code, verifier }` at `POST /api/auth/google/app` for `{ user, token }`; the code is useless without the verifier whose
+hash the app sent first, so another app catching the link gains nothing. Only `shopora:`, `exp:` and `exps:` return links are accepted.
 
 | Method & path | Auth | Returns |
 |---|---|---|
+| `POST /api/auth/google/app` | – `{ code, verifier }` | `{ user, token }` (the app's Google sign-in, see above) |
 | `GET /api/cart` | ✓ | `{ items }` (CartItem + `slug`, `imageUrl`, `stock`) |
 | `POST /api/cart` | ✓ `{ productId, quantity }` | adds; 404 unknown product, 409 `cart_full` (20 lines) |
 | `PUT /api/cart` | ✓ `{ items: [{ productId, quantity }] }` | merges a guest cart |

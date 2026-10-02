@@ -42,7 +42,7 @@ export function AccountScreen() {
 export function LoginScreen({ route }: { route: { params?: RootStack['Login'] } }) {
   const c = useTheme()
   const nav = useNavigation<Nav>()
-  const { login, register } = useAuth()
+  const { login, register, loginWithGoogle } = useAuth()
   const [mode, setMode] = useState<'login' | 'register'>(route.params?.mode ?? 'login')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -64,6 +64,19 @@ export function LoginScreen({ route }: { route: { params?: RootStack['Login'] } 
     }
   }
 
+  async function google() {
+    setBusy(true)
+    setError('')
+    try {
+      await loginWithGoogle()
+      nav.goBack()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong. Try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
       <Text style={{ color: c.foreground, fontSize: 24, fontWeight: '700', marginBottom: 16 }}>{mode === 'login' ? 'Log in' : 'Create your account'}</Text>
@@ -72,10 +85,16 @@ export function LoginScreen({ route }: { route: { params?: RootStack['Login'] } 
       <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" />
       {error ? <Note text={error} error /> : null}
       <Button label={mode === 'login' ? 'Log in' : 'Create account'} onPress={submit} busy={busy} />
-      <Text onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} style={{ color: c.primary, textAlign: 'center', marginTop: 16 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 16 }}>
+        <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
+        <Text style={{ color: c.muted }}>or</Text>
+        <View style={{ flex: 1, height: 1, backgroundColor: c.border }} />
+      </View>
+      <Button label={mode === 'login' ? 'Continue with Google' : 'Sign up with Google'} variant="outline" onPress={google} disabled={busy} />
+      <Text onPress={() => { setMode(mode === 'login' ? 'register' : 'login'); setError('') }} style={{ color: c.primary, textAlign: 'center', marginTop: 20 }}>
         {mode === 'login' ? 'New here? Create an account' : 'Already have an account? Log in'}
       </Text>
-      <Text style={{ color: c.muted, textAlign: 'center', marginTop: 16, fontSize: 12 }}>Same account as the website. Signed up with Google there? Use “Forgot password” on the site to set a password.</Text>
+      <Text style={{ color: c.muted, textAlign: 'center', marginTop: 16, fontSize: 12 }}>Same account as the website, so signing up there with Google works here too.</Text>
     </ScrollView>
   )
 }
