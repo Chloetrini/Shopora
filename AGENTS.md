@@ -183,6 +183,10 @@ Vercel deploy, env vars, Google redirect URIs, health check, README.
 
 ## 7. Deployment (Vercel)
 
+**HNG rule: turn OFF Vercel Authentication for every project** (Vercel project, Settings, Deployment Protection, Vercel Authentication: off).
+While it is on, the `*.vercel.app` links ask visitors, including the reviewers, to log in to Vercel. Check it right after the first deploy of any
+new project. It was on for Shopora by default (`all_except_custom_domains`) and was switched off on 2 Oct 2026. Also leave password protection off.
+
 Environment variables (Project, Settings, Environment Variables; Production at least):
 
 | Name | Required | Value |
