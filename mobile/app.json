@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Shopora",
+    "slug": "shopora",
+    "scheme": "shopora",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": { "image": "./assets/splash-icon.png", "resizeMode": "contain", "backgroundColor": "#0b6b63" },
+    "ios": { "supportsTablet": false, "bundleIdentifier": "website.shopora.app" },
+    "android": {
+      "package": "website.shopora.app",
+      "adaptiveIcon": { "backgroundColor": "#0b6b63", "foregroundImage": "./assets/android-icon-foreground.png" },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": ["expo-secure-store", "expo-web-browser"],
+    "extra": { "apiUrl": "https://www.shopora.website" }
+  }
+}
