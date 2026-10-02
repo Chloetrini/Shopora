@@ -15,6 +15,8 @@ export async function POST(req: NextRequest) {
     // One generic error for "no such account", "wrong password" and "Google-only account".
     const good = await verifyPassword(parsed.data.password, user?.passwordHash ?? null)
     if (!user || !good) return fail('Wrong email or password', 401)
+    // Only after the password checked out, so this never reveals which emails have accounts.
+    if (!user.emailVerified) return fail('Please confirm your email first. We sent you a link when you signed up.', 403, { code: 'email_not_verified' })
     const sealed = await sealSession({ uid: user.id, v: user.sessionVersion })
     const res = ok('Logged in', { user: toPublicUser(user), ...(isMobileClient(req) ? { token: sealed } : {}) })
     res.cookies.set(SESSION_COOKIE, sealed, cookieOptions())

@@ -106,23 +106,23 @@ const shell = (title: string, body: string) =>
 
 const firstName = (fullName: string) => fullName.trim().split(/\s+/)[0] || 'there'
 
-/** Sign-up with email and password: a welcome that asks them to confirm the address. The name is escaped in the HTML. */
+/** Sign-up with email and password: ask them to confirm the address (they can't log in until they do). The name is escaped in the HTML. */
 export function verifyEmailMessage(fullName: string, link: string) {
   const name = firstName(fullName)
   const text = [
     `Hi ${name},`,
     '',
-    `Welcome to ${SITE.name}! Please confirm your email address so we know it's really you.`,
+    `Thanks for signing up to ${SITE.name}. Please confirm your email address to finish creating your account.`,
     '',
     `Confirm your email: ${link}`,
     '',
     'This link works once and expires in 24 hours. If you didn’t create an account, you can ignore this email.',
   ].join('\n')
-  const html = shell(`Welcome to ${SITE.name}, ${escapeHtml(name)}`, `<p>Please confirm your email address so we know it's really you.</p>${button(link, 'Confirm your email')}<p style="color:#5d6775;font-size:13px">This link works once and expires in 24 hours. If you didn’t create an account, you can ignore this email.</p>`)
-  return { subject: `Welcome to ${SITE.name}: confirm your email`, text, html }
+  const html = shell(`Confirm your email, ${escapeHtml(name)}`, `<p>Thanks for signing up to ${escapeHtml(SITE.name)}. Please confirm your email address to finish creating your account.</p>${button(link, 'Confirm your email')}<p style="color:#5d6775;font-size:13px">This link works once and expires in 24 hours. If you didn’t create an account, you can ignore this email.</p>`)
+  return { subject: `Confirm your email for ${SITE.name}`, text, html }
 }
 
-/** Sign-up with Google: the address is already verified, so this is only a welcome. */
+/** Sent once an account exists and its address is confirmed: right after a Google sign-up, and after someone confirms their email. */
 export function welcomeEmailMessage(fullName: string) {
   const name = firstName(fullName)
   const link = siteUrl()

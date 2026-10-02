@@ -118,15 +118,16 @@ export function VerifyEmailView({ token }: { token: string }) {
   if (state === 'done') {
     return (
       <AuthShell title="Email confirmed">
-        <p className="text-center text-muted-foreground">Thanks! Your email address is confirmed.</p>
-        <Link href="/" className={`${primary} block`}>Continue shopping</Link>
+        <p className="text-center text-muted-foreground">Thanks! You’re logged in, and we’ve sent you a welcome email.</p>
+        <Link href="/" prefetch={false} className={`${primary} block`}>Start shopping</Link>
+        <p className="text-center text-xs text-muted-foreground">Using the phone app? Go back to it and log in with your email and password.</p>
       </AuthShell>
     )
   }
   if (state === 'broken') {
     return (
       <AuthShell title="This link didn’t work">
-        <p className="text-center text-muted-foreground">It may have expired or already been used. Log in and press “Resend” on the banner to get a new one.</p>
+        <p className="text-center text-muted-foreground">It may have expired or already been used. Try to log in and we’ll offer to send a new link.</p>
         <Link href="/login" className={`${primary} block`}>Log in</Link>
       </AuthShell>
     )

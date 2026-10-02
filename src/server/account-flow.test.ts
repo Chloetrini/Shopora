@@ -9,7 +9,7 @@ const sent: { to: string; subject: string; text: string; html: string }[] = []
 vi.mock('./email.service', () => ({ sendEmail: async (m: (typeof sent)[number]) => { sent.push(m); return 'sent' } }))
 
 const stored: { userId: string; kind: string; hash: string }[] = []
-const consumeVerify = vi.fn(async (hash: string) => (hash === hashToken('good-verify-token-xxxxxxxx') ? 'a@example.com' : null))
+const consumeVerify = vi.fn(async (hash: string) => (hash === hashToken('good-verify-token-xxxxxxxx') ? { id: 'u1', email: 'a@example.com', fullName: 'Ada Lovelace', sessionVersion: 0 } : null))
 const consumeReset = vi.fn(async (hash: string, _pw: string) => (hash === hashToken('good-reset-token-xxxxxxxxx') ? 'a@example.com' : null))
 vi.mock('./db/account-tokens', () => ({
   storeToken: async (userId: string, kind: string, hash: string) => { stored.push({ userId, kind, hash }) },
@@ -104,9 +104,9 @@ describe('emails', () => {
       expect(m.html).not.toContain('<script>')
     }
   })
-  it('the sign-up email is a welcome that asks to confirm; the Google one is only a welcome', async () => {
+  it('the sign-up email asks to confirm; the welcome comes separately, after', async () => {
     const { verifyEmailMessage, welcomeEmailMessage } = await import('./email-templates')
-    expect(verifyEmailMessage('Ada', 'https://x/y').subject).toMatch(/Welcome.*confirm/i)
+    expect(verifyEmailMessage('Ada', 'https://x/y').subject).toMatch(/confirm your email/i)
     expect(welcomeEmailMessage('Ada').subject).toBe('Welcome to Shopora')
   })
 })

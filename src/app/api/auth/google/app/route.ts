@@ -17,5 +17,5 @@ export async function POST(req: NextRequest) {
   const user = opened ? await findUserById(opened.uid) : null
   // One answer for a wrong code, a wrong verifier, an expired code and a session that was since invalidated.
   if (!opened || !user || user.sessionVersion !== opened.v) return fail('That sign-in didn’t work. Try again.', 401)
-  return ok('Logged in', { user: toPublicUser(user), token: await sealSession({ uid: user.id, v: user.sessionVersion }) })
+  return ok('Logged in', { user: toPublicUser(user), token: await sealSession({ uid: user.id, v: user.sessionVersion }), created: opened.created })
 }

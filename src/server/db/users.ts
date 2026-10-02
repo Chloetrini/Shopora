@@ -139,3 +139,16 @@ export async function changePassword(id: string, passwordHash: string): Promise<
 export async function deleteUser(id: string): Promise<void> {
   await sql()`delete from users where id = ${id}`
 }
+
+/**
+ * Someone registers an email that already has an account which never confirmed its address (and has no Google link). Whoever made that
+ * account never proved they own the address, so the new sign-up takes it over: new name and password, old sessions ended. Null if the account
+ * is confirmed or linked to Google (those are never touched).
+ */
+export async function reclaimUnverified(email: string, fullName: string, passwordHash: string): Promise<UserRecord | null> {
+  const rows = await sql()`
+    update users set full_name = ${fullName}, password_hash = ${passwordHash}, session_version = session_version + 1
+    where email = ${email.toLowerCase()} and email_verified = false and google_id is null
+    returning id, email, full_name, password_hash, google_id, email_verified, session_version, phone, (extract(epoch from avatar_updated_at) * 1000)::bigint as avatar_v`
+  return rows[0] ? map(rows[0]) : null
+}

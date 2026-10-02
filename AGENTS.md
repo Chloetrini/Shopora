@@ -139,10 +139,17 @@ A user logs in on both; adding to the cart on the web shows up on the phone almo
 - **Milestone 11 ✅ Account emails and passwords** (website and app): sign-up by email sends **"Welcome to Shopora: confirm your email"** (24 h, single-use link,
   `/verify-email` waits for a click); a **new Google account** gets **"Welcome to Shopora"** (already verified); **Forgot password** (`/forgot-password`, link 30 min, single-use,
   `/reset-password`; the answer is identical for known and unknown emails; 5 per 15 min per IP and 3 per 15 min per address) also lets a Google-only account **add** a password.
-  A reset signs the account out everywhere, doesn't sign this device in, and counts as proof of the address. **An unconfirmed email never blocks login**: a banner (website)
-  / notice (app) offers Resend (`POST /api/auth/resend-verification`, 3 per 15 min). Tokens: 256 random bits, only the SHA-256 hash stored (`users.*_token_hash/_expires`,
+  A reset signs the account out everywhere, doesn't sign this device in, and counts as proof of the address. **Changed later, at the user's request: an unconfirmed email BLOCKS login** (see "Confirm before login" below). Tokens: 256 random bits, only the SHA-256 hash stored (`users.*_token_hash/_expires`,
   `server/tokens.ts`, `db/account-tokens.ts`, `account-email.ts`); links are built from `siteUrl()`, never the Host header; the new password is validated before the link is used up.
   Existing accounts are **not** mass-verified (that would let an unverified password account be taken over via Google); they just see the banner. Tests: `account-flow.test.ts`.
+- **Confirm before login (replaces the "not blocked" rule).** Signing up with **email and password** creates the account but signs nobody in: a "Confirm your email" email goes out
+  (24 h, single-use) and the screen says "Check your email". Logging in before confirming fails with 403 `email_not_verified` (only after the password was right, so it never reveals
+  which emails have accounts) and offers "Resend the email" (`POST /api/auth/resend-verification { email }`, not signed in, same answer for every address, 5 per 15 min per IP and
+  3 per 15 min per address, only an unconfirmed password account is emailed). Pressing the confirm button (`POST /api/auth/verify-email`) **signs the person in** (cookie, and a `token`
+  for the app), sets a 2-minute `shopora_welcome` cookie ("Welcome to Shopora, <name>!" banner) and sends the **welcome email once**. **Google sign-ups need no confirmation** (Google already
+  verified the address): they are logged in at once, get the welcome email and the welcome message (website banner / app alert; the app learns `created` from the one-time code).
+  Registering an email whose account **never confirmed** takes that account over (new name and password, old sessions ended), because its creator never proved the address; a confirmed or
+  Google-linked account is never touched (409). Tests: `signup-flow.test.ts`.
 - **Milestone 12 ✅ Profile** (website `/profile`, app Account → Edit profile): photo (centre-cropped to 512 px JPEG in the browser/phone, stored on the user row
   (`avatar_b64`, `avatar_type`, `avatar_updated_at`), served only to its owner from `GET /api/users/me/avatar?v=…`, type decided from the bytes, ≤ 1.5 MB), full name, phone
   (optional, `phoneField`), the email shown read-only with a confirmed badge (changing the email would break sign-in and order emails, so it is not offered), change password
@@ -193,7 +200,7 @@ Paystack, so the page you return to shows your account avatar. If the hand-off f
 | `POST /api/auth/handoff` | ✓ | `{ code }` (60 s) for `GET /api/auth/handoff?code&next` which sets the cookie and redirects (same-site `next` only) |
 | `GET /api/admin/orders`, `GET /api/admin/products`, `GET /api/admin/discounts` | admin | the lists for the app's Admin tab (orders carry `next`: the statuses each may move to); anyone else gets 404 |
 | `POST /api/auth/verify-email` | – `{ token }` | `{ email }`; 400 `invalid_token` |
-| `POST /api/auth/resend-verification` | ✓ | sends a new confirm link (3 per 15 min) |
+| `POST /api/auth/resend-verification` | – `{ email }` | same answer for every address; emails only an unconfirmed password account |
 | `POST /api/auth/forgot-password` | – `{ email }` | same message whether or not the account exists |
 | `POST /api/auth/reset-password` | – `{ token, newPassword }` | 200, or 400 `invalid_token`; no session cookie |
 | `PATCH /api/users/me` | ✓ `{ fullName?, phone? }` (strict) | `{ user }` |

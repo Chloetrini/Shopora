@@ -32,16 +32,16 @@ function codeSecret(): string {
   return `${s}:shopora-app-code`
 }
 
-type AppCode = { uid: string; v: number; ch: string }
+type AppCode = { uid: string; v: number; ch: string; created?: boolean }
 
 export const sealAppCode = (c: AppCode) => sealData(c, { password: codeSecret(), ttl: CODE_TTL })
 
 /** The user the code was issued for, only if the verifier matches the challenge the app began with. */
-export async function openAppCode(sealed: string, verifier: string): Promise<{ uid: string; v: number } | null> {
+export async function openAppCode(sealed: string, verifier: string): Promise<{ uid: string; v: number; created: boolean } | null> {
   try {
     const d = await unsealData<Partial<AppCode>>(sealed, { password: codeSecret(), ttl: CODE_TTL })
     if (typeof d.uid !== 'string' || typeof d.v !== 'number' || typeof d.ch !== 'string') return null
-    return challengeFor(verifier) === d.ch ? { uid: d.uid, v: d.v } : null
+    return challengeFor(verifier) === d.ch ? { uid: d.uid, v: d.v, created: d.created === true } : null
   } catch {
     return null
   }

@@ -11,8 +11,10 @@ type AuthApi = {
   user: User | null
   ready: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (fullName: string, email: string, password: string) => Promise<void>
-  loginWithGoogle: () => Promise<void>
+  /** Creates the account. Nobody is signed in: the email must be confirmed first. */
+  register: (fullName: string, email: string, password: string) => Promise<{ email: string; verificationSent: boolean }>
+  /** `created` is true when this sign-in just made the account (the app then says welcome). */
+  loginWithGoogle: () => Promise<{ created: boolean }>
   refreshUser: () => Promise<void>
   updateUser: (u: User) => void
   replaceToken: (t: string) => Promise<void>
@@ -75,14 +77,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       ready,
       login: async (email, password) => finish(await api('/api/auth/login', { method: 'POST', body: { email, password } })),
-      register: async (fullName, email, password) => finish(await api('/api/auth/register', { method: 'POST', body: { fullName, email, password } })),
+      register: async (fullName, email, password) => api<{ email: string; verificationSent: boolean }>('/api/auth/register', { method: 'POST', body: { fullName, email, password } }),
       refreshUser,
       updateUser: (u) => setUser(u),
       replaceToken: async (t) => {
         setToken(t)
         await SecureStore.setItemAsync(KEY, t)
       },
-      loginWithGoogle: async () => finish(await api('/api/auth/google/app', { method: 'POST', body: await googleSignIn() })),
+      loginWithGoogle: async () => {
+        const body = await api<{ user: User; token?: string; created?: boolean }>('/api/auth/google/app', { method: 'POST', body: await googleSignIn() })
+        await finish(body)
+        return { created: body.created === true }
+      },
       logout: async () => {
         setToken(null)
         setUser(null)

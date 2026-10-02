@@ -83,7 +83,7 @@ export function VerifyNotice() {
   async function resend() {
     setState('busy')
     try {
-      await api('/api/auth/resend-verification', { method: 'POST' })
+      await api('/api/auth/resend-verification', { method: 'POST', body: { email: user?.email } })
       setState('sent')
     } catch {
       setState('error')

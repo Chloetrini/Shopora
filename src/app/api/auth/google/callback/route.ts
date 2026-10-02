@@ -7,7 +7,7 @@ import { resolveGoogleAccount } from '@/server/google-account'
 import { sendWelcome } from '@/server/account-email'
 import { sealAppCode } from '@/server/app-auth'
 import { allow, AUTH_LIMIT, clientIp } from '@/server/rate-limit'
-import { cookieOptions, OAUTH_COOKIE, SESSION_COOKIE, sealSession, unsealOAuth } from '@/server/session'
+import { cookieOptions, OAUTH_COOKIE, SESSION_COOKIE, sealSession, unsealOAuth, welcomeCookie } from '@/server/session'
 
 export async function GET(req: NextRequest) {
   const to = (path: string) => NextResponse.redirect(new URL(path, siteUrl()))
@@ -46,13 +46,17 @@ export async function GET(req: NextRequest) {
     if (saved.app) {
       // The app gets a one-time code, never the session; it trades the code for a token with its secret verifier.
       const back2app = new URL(saved.app.redirect)
-      back2app.searchParams.set('code', await sealAppCode({ uid: user.id, v: user.sessionVersion, ch: saved.app.challenge }))
+      back2app.searchParams.set('code', await sealAppCode({ uid: user.id, v: user.sessionVersion, ch: saved.app.challenge, created }))
       const res = NextResponse.redirect(back2app)
       res.cookies.set(OAUTH_COOKIE, '', { path: '/api/auth/google', maxAge: 0 })
       return res
     }
     const res = to(safeNextPath(saved.next))
     res.cookies.set(SESSION_COOKIE, await sealSession({ uid: user.id, v: user.sessionVersion }), cookieOptions())
+    if (created) {
+      const w = welcomeCookie(user.fullName) // the next page says "Welcome to Shopora, <name>!"
+      res.cookies.set(w.name, w.value, w.options)
+    }
     res.cookies.set(OAUTH_COOKIE, '', { path: '/api/auth/google', maxAge: 0 })
     return res
   } catch (e) {

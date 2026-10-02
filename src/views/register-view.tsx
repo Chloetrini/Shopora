@@ -1,18 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AuthShell, OrDivider } from '@/components/auth/auth-shell'
+import { CheckEmail } from '@/components/auth/check-email'
 import { GoogleButton } from '@/components/auth/google-button'
 import { registerSchema } from '@/lib/validation'
 import { Field } from './login-view'
 
 export function RegisterView({ next, googleEnabled }: { next: string; googleEnabled: boolean }) {
-  const router = useRouter()
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [done, setDone] = useState<{ email: string; sent: boolean } | null>(null)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -30,8 +30,8 @@ export function RegisterView({ next, googleEnabled }: { next: string; googleEnab
       const res = await fetch('/api/auth/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parsed.data) })
       const json = await res.json()
       if (res.ok) {
-        router.push(next)
-        router.refresh()
+        // No session yet: the account is created and waits for the email to be confirmed.
+        setDone({ email: json.body.email, sent: json.body.verificationSent !== false })
         return
       }
       if (Array.isArray(json.details)) setErrors(Object.fromEntries(json.details.map((d: { path: string; message: string }) => [d.path, d.message])))
@@ -42,6 +42,7 @@ export function RegisterView({ next, googleEnabled }: { next: string; googleEnab
     setBusy(false)
   }
 
+  if (done) return <CheckEmail email={done.email} sent={done.sent} />
   return (
     <AuthShell title="Create your account">
       <form onSubmit={onSubmit} noValidate className="space-y-4">

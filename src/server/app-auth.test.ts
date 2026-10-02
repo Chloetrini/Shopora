@@ -28,7 +28,11 @@ describe('one-time code', () => {
   const ch = challengeFor(verifier)
   it('opens with the right verifier', async () => {
     const code = await sealAppCode({ uid: 'u1', v: 2, ch })
-    expect(await openAppCode(code, verifier)).toEqual({ uid: 'u1', v: 2 })
+    expect(await openAppCode(code, verifier)).toEqual({ uid: 'u1', v: 2, created: false })
+  })
+  it('remembers that the sign-in created the account, so the app can say welcome', async () => {
+    const code = await sealAppCode({ uid: 'u1', v: 2, ch, created: true })
+    expect((await openAppCode(code, verifier))?.created).toBe(true)
   })
   it('is useless without the verifier the app began with', async () => {
     const code = await sealAppCode({ uid: 'u1', v: 2, ch })

@@ -30,6 +30,14 @@ export async function unsealSession(sealed: string | undefined): Promise<Session
 export const CLIENT_HEADER = 'x-shopora-client'
 export const isMobileClient = (req: Request) => req.headers.get(CLIENT_HEADER) === 'mobile'
 
+/** A 2-minute, readable cookie carrying the first name, so the next page can say "Welcome to Shopora, <name>!" once. */
+export const WELCOME_COOKIE = 'shopora_welcome'
+export const welcomeCookie = (fullName: string) => ({
+  name: WELCOME_COOKIE,
+  value: encodeURIComponent(fullName.trim().split(/\s+/)[0]?.slice(0, 40) || 'there'),
+  options: { path: '/', maxAge: 120, sameSite: 'lax' as const, secure: process.env.NODE_ENV === 'production' },
+})
+
 export const cookieOptions = (maxAge = SESSION_MAX_AGE) => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',

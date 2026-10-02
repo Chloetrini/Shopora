@@ -51,6 +51,7 @@ wishlist, reviews, saved addresses, back-in-stock alerts, profile with photo, fo
 ## Security notes
 
 - Tenant isolation: the user id only comes from the session (cookie or token), every user-owned query is scoped by it, and other people's data answers 404.
+- Email and password sign-ups must confirm their email before they can log in; Google sign-ups are already verified and log in at once.
 - Passwords hashed with bcrypt; emailed links (confirm email, reset password) are 256-bit random, stored only as a hash, single use and expiring; reset and "forgot password" answer the same for known and unknown emails.
 - The app's Google sign-in returns a one-time code bound to a secret PKCE verifier kept on the phone, never the session itself.
 - Admin routes answer 404 to everyone who is not an admin.
@@ -58,7 +59,7 @@ wishlist, reviews, saved addresses, back-in-stock alerts, profile with photo, fo
 
 ## Tests and checks
 
-161 automated tests (`npm test`), plus typecheck, lint and a production build. Database changes were checked against the real Neon database with
+175 automated tests (`npm test`), plus typecheck, lint and a production build. Database changes were checked against the real Neon database with
 rollback-only tests.
 
 ## Hardest parts (for the form)

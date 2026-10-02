@@ -2,8 +2,8 @@ import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
-import { ScrollView, Text, View } from 'react-native'
-import { api } from '../api'
+import { Alert, ScrollView, Text, View } from 'react-native'
+import { api, ApiError } from '../api'
 import { openSignedIn } from '../payment'
 import { API_URL } from '../config'
 import { useAuth } from '../auth'
@@ -52,6 +52,9 @@ export function LoginScreen({ route }: { route: { params?: RootStack['Login'] } 
   const { login, register, loginWithGoogle } = useAuth()
   const [mode, setMode] = useState<'login' | 'register' | 'forgot'>(route.params?.mode ?? 'login')
   const [info, setInfo] = useState('')
+  // Set once an account was just created, or a login was refused because the email isn't confirmed yet.
+  const [waiting, setWaiting] = useState<{ email: string; sent: boolean } | null>(null)
+  const [resend, setResend] = useState<'idle' | 'busy' | 'sent' | 'error'>('idle')
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -67,13 +70,30 @@ export function LoginScreen({ route }: { route: { params?: RootStack['Login'] } 
         setInfo(r)
         return
       }
-      if (mode === 'login') await login(email.trim(), password)
-      else await register(fullName.trim(), email.trim(), password)
-      nav.goBack()
+      if (mode === 'login') {
+        await login(email.trim(), password)
+        nav.goBack()
+      } else {
+        const r = await register(fullName.trim(), email.trim(), password)
+        setWaiting({ email: r.email, sent: r.verificationSent })
+      }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong. Try again.')
+      // A correct password for an account whose email isn't confirmed yet: explain, and offer a new link.
+      if (e instanceof ApiError && e.code === 'email_not_verified') setWaiting({ email: email.trim(), sent: true })
+      else setError(e instanceof Error ? e.message : 'Something went wrong. Try again.')
     } finally {
       setBusy(false)
+    }
+  }
+
+  async function resendLink() {
+    if (!waiting) return
+    setResend('busy')
+    try {
+      await api('/api/auth/resend-verification', { method: 'POST', body: { email: waiting.email } })
+      setResend('sent')
+    } catch {
+      setResend('error')
     }
   }
 
@@ -81,13 +101,29 @@ export function LoginScreen({ route }: { route: { params?: RootStack['Login'] } 
     setBusy(true)
     setError('')
     try {
-      await loginWithGoogle()
+      const { created } = await loginWithGoogle()
       nav.goBack()
+      if (created) Alert.alert('Welcome to Shopora!', 'Your account is ready. We’ve sent you a welcome email.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong. Try again.')
     } finally {
       setBusy(false)
     }
+  }
+
+  if (waiting) {
+    return (
+      <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={{ padding: 20, gap: 12 }}>
+        <Text style={{ color: c.foreground, fontSize: 24, fontWeight: '700' }}>Check your email</Text>
+        <Text style={{ color: c.foreground, lineHeight: 22 }}>
+          {waiting.sent ? `We sent a link to ${waiting.email}.` : 'We couldn’t send the email just now, so tap Resend.'} Open it on your phone or computer and tap “Confirm your email”. Then come back here and log in. You can’t log in before that.
+        </Text>
+        <Text style={{ color: c.muted }}>Nothing there? Look in spam. The link works once and lasts 24 hours.</Text>
+        <Button label={resend === 'busy' ? 'Sending…' : resend === 'sent' ? 'Sent. Check your inbox' : 'Resend the email'} variant="outline" onPress={resendLink} disabled={resend === 'busy' || resend === 'sent'} />
+        {resend === 'error' ? <Note text="Couldn’t send it. Try again in a few minutes." error /> : null}
+        <Button label="Back to log in" onPress={() => { setWaiting(null); setMode('login'); setResend('idle'); setPassword('') }} />
+      </ScrollView>
+    )
   }
 
   return (

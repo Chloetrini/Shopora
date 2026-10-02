@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { AuthShell, OrDivider } from '@/components/auth/auth-shell'
+import { CheckEmail } from '@/components/auth/check-email'
 import { GoogleButton } from '@/components/auth/google-button'
 import { loginSchema } from '@/lib/validation'
 
@@ -20,6 +21,7 @@ export function LoginView({ next, error, googleEnabled }: { next: string; error?
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState(error ? (GOOGLE_ERRORS[error] ?? GOOGLE_ERRORS.google_failed) : '')
   const [busy, setBusy] = useState(false)
+  const [unconfirmed, setUnconfirmed] = useState('')
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -40,6 +42,11 @@ export function LoginView({ next, error, googleEnabled }: { next: string; error?
         router.refresh()
         return
       }
+      if (json.code === 'email_not_verified') {
+        setUnconfirmed(String(parsed.data.email))
+        setBusy(false)
+        return
+      }
       setFormError(json.message ?? 'Could not log in. Try again.')
     } catch {
       setFormError('Could not reach the server. Try again.')
@@ -47,6 +54,7 @@ export function LoginView({ next, error, googleEnabled }: { next: string; error?
     setBusy(false)
   }
 
+  if (unconfirmed) return <CheckEmail email={unconfirmed} title="Confirm your email first" />
   return (
     <AuthShell title="Log in">
       <form onSubmit={onSubmit} noValidate className="space-y-4">

@@ -1,15 +1,25 @@
+import { z } from 'zod'
 import type { NextRequest } from 'next/server'
 import { sendVerification } from '@/server/account-email'
-import { fail, ok } from '@/server/http'
-import { allow } from '@/server/rate-limit'
-import { requireUser } from '@/server/require-user'
+import { findUserByEmail } from '@/server/db/users'
+import { ok, parseJson, tooMany } from '@/server/http'
+import { allow, clientIp } from '@/server/rate-limit'
 
-/** For a signed-in person whose email isn't confirmed yet (the banner's Resend button). */
+const bodySchema = z.object({ email: z.string().trim().toLowerCase().email('Enter a valid email address').max(254) }).strict()
+const ANSWER = 'If that email has an account waiting to be confirmed, we’ve sent a new link.'
+
+/**
+ * Not signed in (they can't be until they confirm), so the answer is identical for every address and the sending is limited
+ * per IP and per address. Only an account that is still unconfirmed and has a password gets an email.
+ */
 export async function POST(req: NextRequest) {
-  const a = await requireUser(req)
-  if ('res' in a) return a.res
-  if (a.user.emailVerified) return ok('Your email is already confirmed')
-  if (!allow(`verify-mail:${a.user.id}`, 3, 15 * 60 * 1000)) return fail('Too many emails. Try again in a few minutes.', 429)
-  const sent = await sendVerification(a.user)
-  return sent ? ok('We’ve sent a new link to your email') : fail('We couldn’t send the email right now. Try again in a few minutes.', 502)
+  if (!allow(`resend:${clientIp(req)}`, 5, 15 * 60 * 1000)) return tooMany()
+  const parsed = await parseJson(req, bodySchema)
+  if ('res' in parsed) return parsed.res
+  const { email } = parsed.data
+  if (allow(`resend-to:${email}`, 3, 15 * 60 * 1000)) {
+    const user = await findUserByEmail(email)
+    if (user && !user.emailVerified && user.passwordHash) await sendVerification(user)
+  }
+  return ok(ANSWER)
 }

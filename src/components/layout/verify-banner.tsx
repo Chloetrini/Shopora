@@ -8,7 +8,7 @@ export function VerifyBanner({ email }: { email: string }) {
   async function resend() {
     setState('busy')
     try {
-      const res = await fetch('/api/auth/resend-verification', { method: 'POST' })
+      const res = await fetch('/api/auth/resend-verification', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) })
       setState(res.ok ? 'sent' : 'error')
     } catch {
       setState('error')
