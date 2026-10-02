@@ -133,7 +133,11 @@ A user logs in on both; adding to the cart on the web shows up on the phone almo
   server cart (polled every 2 s), checkout with saved address and discount code, Paystack in the in-app browser, my orders with live status.
   Signed-out visitors can browse; adding to the cart sends them to log in (the cart belongs to the account). Done when: `tsc` and
   `expo export --platform android` pass, the token login test passes. **Not yet tried on a real phone** (that is milestone 9).
-- **Milestone 9 ⬜ Phone testing**: publish with EAS Update, open in Expo Go on the phone, test web to phone cart sync both ways.
+- **Milestone 9 🟡 Phone testing**: published with EAS Update (Expo account `chloetrini`, project `@chloetrini/shopora`, id `2bfc96ad-2189-4eed-8ab2-cf773801ac1f`,
+  branch `preview`). Open in Expo Go: `exp://u.expo.dev/2bfc96ad-2189-4eed-8ab2-cf773801ac1f/group/<update group id>` or the QR on the update's page
+  in the Expo dashboard. **Still to do by hand:** test on a real phone, web to phone cart sync both ways. To publish a new version:
+  `cd mobile && EXPO_TOKEN=… npx eas-cli update --branch preview --environment preview --message "…" --platform all --non-interactive`
+  (the token is only ever an environment secret, never in the repo; Expo domains must be allowed in the session's network settings).
 
 **Cart (signed in = server, guest = browser).** Table `cart_items(user_id, product_id, quantity)`; names and prices are always
 joined from `products`. `CartProvider` (`hooks/use-cart.ts`, mounted in the `(shop)` layout) shows a change at once, sends it,
