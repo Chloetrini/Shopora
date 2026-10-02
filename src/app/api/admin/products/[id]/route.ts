@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { NextRequest } from 'next/server'
-import { updateProductAdmin } from '@/server/db/features'
+import { deleteProduct, updateProductAdmin } from '@/server/db/features'
 import { fail, ok, parseJson } from '@/server/http'
 import { requireAdmin } from '@/server/require-user'
 import { notifyBackInStock } from '@/server/restock'
@@ -19,4 +19,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   let notified = 0
   if (r.wasZero && r.stock > 0) notified = await notifyBackInStock({ productId: id, slug: r.slug, name: r.name })
   return ok('Product updated', { stock: r.stock, notified })
+}
+
+/** Admin only. Erased if never ordered, otherwise archived (see deleteProduct). */
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const a = await requireAdmin(req)
+  if ('res' in a) return a.res
+  const result = await deleteProduct((await params).id)
+  if (result === 'not_found') return fail('Not found', 404)
+  return ok(result === 'erased' ? 'Product deleted' : 'Product removed. It is in past orders, so it was archived rather than erased.', { result })
 }

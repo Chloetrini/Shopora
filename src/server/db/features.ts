@@ -229,18 +229,36 @@ export type AdminProduct = Product & { active: boolean; hasUploadedImage: boolea
 export async function listAllProducts(): Promise<AdminProduct[]> {
   const rows = await sql()`
     select id, slug, name, description, price_cents, currency, image_url, category, stock, active, (image_b64 is not null) as has_upload
-    from products order by created_at, name`
+    from products where deleted_at is null order by created_at, name`
   return rows.map((r) => ({ ...toProduct(r), active: r.active as boolean, hasUploadedImage: r.has_upload as boolean }))
+}
+
+/**
+ * Removes a product from the shop for good. One that was never ordered is erased (its cart lines, wishlist entries,
+ * reviews and stock alerts go with it). One that appears in past orders is archived instead: hidden everywhere and out of
+ * the admin list, but kept so those orders still point at it.
+ */
+export async function deleteProduct(id: string): Promise<'erased' | 'archived' | 'not_found'> {
+  if (!isUuid(id)) return 'not_found'
+  const db = sql()
+  const info = await db`select exists (select 1 from order_items where product_id = ${id}) as ordered from products where id = ${id} and deleted_at is null`
+  if (info.length === 0) return 'not_found'
+  if (info[0].ordered) {
+    await db`update products set active = false, deleted_at = now() where id = ${id}`
+    return 'archived'
+  }
+  await db`delete from products where id = ${id}`
+  return 'erased'
 }
 
 /** Sets stock/active. Returns the previous stock so the caller can see a sold-out product come back. */
 export async function updateProductAdmin(id: string, patch: { stock?: number; active?: boolean }): Promise<{ found: boolean; wasZero: boolean; slug: string; name: string; stock: number }> {
   if (!isUuid(id)) return { found: false, wasZero: false, slug: '', name: '', stock: 0 }
-  const before = await sql()`select stock from products where id = ${id}`
+  const before = await sql()`select stock from products where id = ${id} and deleted_at is null`
   if (before.length === 0) return { found: false, wasZero: false, slug: '', name: '', stock: 0 }
   const rows = await sql()`
     update products set stock = coalesce(${patch.stock ?? null}::int, stock), active = coalesce(${patch.active ?? null}::boolean, active)
-    where id = ${id} returning slug, name, stock`
+    where id = ${id} and deleted_at is null returning slug, name, stock`
   return { found: true, wasZero: before[0].stock === 0, slug: rows[0].slug, name: rows[0].name, stock: rows[0].stock }
 }
 

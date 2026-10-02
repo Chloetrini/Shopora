@@ -208,6 +208,10 @@ function AdminProducts() {
             <Button label={p.hasUploadedImage ? 'Replace photo' : 'Upload photo'} variant="outline" style={{ flex: 1, minHeight: 42 }} busy={busy === p.id + 'img'}
               onPress={() => run(p.id + 'img', () => pickAndUpload(p.id), 'Photo saved.')} />
           </View>
+          <Text onPress={() => Alert.alert(`Delete ${p.name}?`, 'It disappears from the shop and from this list. A product that is in past orders is archived instead of erased, so those orders stay intact.', [
+            { text: 'Keep it' },
+            { text: 'Delete', style: 'destructive', onPress: () => run(p.id + 'del', async () => { await api(`/api/admin/products/${p.id}`, { method: 'DELETE' }) }, 'Product deleted.') },
+          ])} style={{ color: c.danger, textAlign: 'center', paddingVertical: 4 }}>{busy === p.id + 'del' ? 'Deleting…' : 'Delete product'}</Text>
         </Card>
       ))}
     </ScrollView>

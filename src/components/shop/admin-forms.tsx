@@ -1,7 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useDismiss } from '@/hooks/use-dismiss'
 import { CATEGORIES } from '@/lib/catalog'
 import { shrinkImage } from '@/lib/shrink-image'
 
@@ -27,6 +28,9 @@ export function ProductAdminRow({ id, stock, active, hasUpload }: { id: string; 
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   const [m, setM] = useState<{ ok: boolean; text: string } | null>(null)
+  const [confirming, setConfirming] = useState(false)
+  const confirmRef = useRef<HTMLSpanElement>(null)
+  useDismiss(confirmRef, confirming, () => setConfirming(false))
 
   async function save(patch: { stock?: number; active?: boolean }) {
     setBusy(true)
@@ -34,6 +38,14 @@ export function ProductAdminRow({ id, stock, active, hasUpload }: { id: string; 
     setM({ ok: r.ok, text: r.ok ? (Number(r.body?.notified) > 0 ? `Saved. ${r.body?.notified} people were emailed that it’s back.` : 'Saved') : r.message })
     setBusy(false)
     if (r.ok) router.refresh()
+  }
+
+  async function remove() {
+    setBusy(true)
+    const r = await send(`/api/admin/products/${id}`, 'DELETE')
+    setBusy(false)
+    if (r.ok) router.refresh() // the row disappears with the refreshed list
+    else { setM({ ok: false, text: r.message }); setConfirming(false) }
   }
 
   async function upload(file: File | undefined) {
@@ -58,6 +70,15 @@ export function ProductAdminRow({ id, stock, active, hasUpload }: { id: string; 
         {hasUpload ? 'Replace photo' : 'Upload photo'}
         <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} />
       </label>
+      {confirming ? (
+        <span ref={confirmRef} className="flex items-center gap-2 text-sm">
+          Delete this product?
+          <button type="button" disabled={busy} onClick={remove} className="rounded-full bg-red-600 px-4 py-1.5 font-medium text-white disabled:opacity-60">Yes, delete</button>
+          <button type="button" onClick={() => setConfirming(false)} className="rounded-full border border-border px-4 py-1.5 hover:border-primary">Cancel</button>
+        </span>
+      ) : (
+        <button type="button" disabled={busy} onClick={() => setConfirming(true)} className="rounded-full border border-red-300 px-4 py-1.5 text-sm text-red-600 hover:border-red-500 disabled:opacity-60 dark:border-red-400/40 dark:text-red-400">Delete</button>
+      )}
       <Msg m={m} />
     </div>
   )

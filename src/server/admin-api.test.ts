@@ -16,6 +16,11 @@ describe('admin endpoints answer 404 to everyone who is not an admin', () => {
     const answers = await Promise.all([orders.GET(call('/api/admin/orders')), products.GET(call('/api/admin/products')), discounts.GET(call('/api/admin/discounts'))])
     expect(answers.map((r) => r?.status)).toEqual([404, 404, 404])
   })
+  it('delete product', async () => {
+    const one = await import('@/app/api/admin/products/[id]/route')
+    const res = await one.DELETE(call('/api/admin/products/11111111-1111-4111-8111-111111111111', 'DELETE'), { params: Promise.resolve({ id: '11111111-1111-4111-8111-111111111111' }) })
+    expect(res?.status).toBe(404)
+  })
   it('writes', async () => {
     const products = await import('@/app/api/admin/products/route')
     expect((await products.POST(call('/api/admin/products', 'POST', { name: 'X', priceNaira: 5, stock: 1, category: 'bags' })))?.status).toBe(404)

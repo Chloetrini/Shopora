@@ -42,8 +42,8 @@ Done only when typecheck, lint, test and build all pass. Check UI at ~400px and 
 
 ## 4. Data (Neon project `shopora`, id `cool-voice-24183935`)
 
-SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`, `006_features.sql`, `007_delivery.sql`, `008_cart.sql`, `009_account_tokens.sql`, `010_profile.sql`
-(all ten are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
+SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`, `006_features.sql`, `007_delivery.sql`, `008_cart.sql`, `009_account_tokens.sql`, `010_profile.sql`, `011_product_delete.sql`
+(all eleven are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
 Tables: `users`, `products`, `orders`, `order_items`. Money is **integer cents**, format only at the edge
 (`lib/money.ts`). `order_items` copies name and price at purchase time. Never build SQL by string
 concatenation: use the tagged template from `sql()` so values are parameters.
@@ -191,6 +191,7 @@ Paystack, so the page you return to shows your account avatar. If the hand-off f
 | `DELETE /api/users/me` | ✓ `{ password }` or `{ confirmEmail }` | account deleted, cookie cleared |
 | `PATCH /api/users/me/password` | ✓ `{ currentPassword?, newPassword }` | fresh cookie (and `token` for the app); "Password changed" / "Password set" |
 | `GET/PUT/DELETE /api/users/me/avatar` | ✓ | the picture to its owner / save raw bytes / remove |
+| `DELETE /api/admin/products/[id]` | admin | erases a product that was never ordered; one that is in past orders is **archived** (`deleted_at`, hidden everywhere, out of the admin list, order history intact) |
 | `GET /api/cart` | ✓ | `{ items }` (CartItem + `slug`, `imageUrl`, `stock`) |
 | `POST /api/cart` | ✓ `{ productId, quantity }` | adds; 404 unknown product, 409 `cart_full` (20 lines) |
 | `PUT /api/cart` | ✓ `{ items: [{ productId, quantity }] }` | merges a guest cart |
