@@ -1,4 +1,5 @@
 import type { NextRequest } from 'next/server'
+import { sendVerification } from '@/server/account-email'
 import { registerSchema } from '@/lib/validation'
 import { createUser, EmailTakenError, findUserByEmail, toPublicUser } from '@/server/db/users'
 import { fail, ok, parseJson, tooMany } from '@/server/http'
@@ -15,8 +16,10 @@ export async function POST(req: NextRequest) {
   try {
     if (await findUserByEmail(email)) return taken()
     const user = await createUser({ email, fullName, passwordHash: await hashPassword(password), googleId: null, emailVerified: false })
+    // Sign-up isn't blocked on this: the email goes out, a banner offers Resend, and the person can shop meanwhile.
+    const verificationSent = await sendVerification(user)
     const sealed = await sealSession({ uid: user.id, v: user.sessionVersion })
-    const res = ok('Account created', { user: toPublicUser(user), ...(isMobileClient(req) ? { token: sealed } : {}) }, 201)
+    const res = ok('Account created', { user: toPublicUser(user), verificationSent, ...(isMobileClient(req) ? { token: sealed } : {}) }, 201)
     res.cookies.set(SESSION_COOKIE, sealed, cookieOptions())
     return res
   } catch (e) {

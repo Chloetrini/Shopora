@@ -3,7 +3,8 @@ import { safeNextPath } from '@/lib/safe-next'
 import { siteUrl } from '@/lib/site-url'
 import { claimGuestOrders } from '@/server/db/orders'
 import { fetchGoogleProfile, googleConfigured } from '@/server/google'
-import { resolveGoogleUser } from '@/server/google-account'
+import { resolveGoogleAccount } from '@/server/google-account'
+import { sendWelcome } from '@/server/account-email'
 import { sealAppCode } from '@/server/app-auth'
 import { allow, AUTH_LIMIT, clientIp } from '@/server/rate-limit'
 import { cookieOptions, OAUTH_COOKIE, SESSION_COOKIE, sealSession, unsealOAuth } from '@/server/session'
@@ -38,7 +39,8 @@ export async function GET(req: NextRequest) {
     // Only a verified Google email is trusted; otherwise someone could claim another person's address.
     if (!profile.email_verified) return back('google_unverified')
 
-    const user = await resolveGoogleUser(profile)
+    const { user, created } = await resolveGoogleAccount(profile)
+    if (created) await sendWelcome(user)
     // Google verified this email, so earlier guest orders placed with it are now safely this account's.
     await claimGuestOrders(user.id, user.email).catch((e) => console.error('claimGuestOrders failed', e))
     if (saved.app) {

@@ -36,10 +36,16 @@ export const registerSchema = z
   .object({
     fullName: text('your full name', LIMITS.nameMax),
     email: z.string().trim().toLowerCase().email('Enter a valid email address').max(254),
-    // bcrypt ignores everything past 72 bytes, so 72 is the honest maximum.
-    password: z.string().min(8, 'Use at least 8 characters').max(72, 'Use at most 72 characters'),
+    password: z.string().min(8, 'Use at least 8 characters').max(72, 'Use at most 72 characters'), // same rule as newPasswordField
   })
   .strict()
+
+/** The rule for any new password, shared by sign-up, reset and the forms (bcrypt ignores everything past 72 bytes). */
+export const newPasswordField = z.string().min(8, 'Use at least 8 characters').max(72, 'Use at most 72 characters')
+
+export const forgotPasswordSchema = z.object({ email: z.string().trim().toLowerCase().email('Enter a valid email address').max(254) }).strict()
+export const resetPasswordSchema = z.object({ token: z.string().min(20).max(200), newPassword: newPasswordField }).strict()
+export const tokenSchema = z.object({ token: z.string().min(20).max(200) }).strict()
 
 export const loginSchema = z
   .object({

@@ -9,7 +9,7 @@ import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
 import { useTheme } from '../theme'
 import type { Product } from '../types'
-import { Button, Center, Note, Photo } from '../ui'
+import { Button, Center, Note, Photo, VerifyNotice } from '../ui'
 
 type Nav = NativeStackNavigationProp<RootStack>
 
@@ -64,6 +64,7 @@ export function ShopScreen() {
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false) }} />}
       ListHeaderComponent={
         <View style={{ padding: 12, gap: 10 }}>
+          <VerifyNotice />
           <TextInput
             value={search}
             onChangeText={setSearch}

@@ -1,4 +1,4 @@
-export type User = { id: string; email: string; fullName: string; isAdmin?: boolean }
+export type User = { id: string; email: string; fullName: string; isAdmin?: boolean; emailVerified?: boolean }
 
 export type Product = {
   id: string; slug: string; name: string; description: string

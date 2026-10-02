@@ -42,8 +42,8 @@ Done only when typecheck, lint, test and build all pass. Check UI at ~400px and 
 
 ## 4. Data (Neon project `shopora`, id `cool-voice-24183935`)
 
-SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`, `006_features.sql`, `007_delivery.sql`, `008_cart.sql`
-(all eight are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
+SQL lives in `db/` and is applied in order: `001_schema.sql`, `002_seed_products.sql`, `003_paystack.sql`, `004_auth.sql`, `005_tracking.sql`, `006_features.sql`, `007_delivery.sql`, `008_cart.sql`, `009_account_tokens.sql`
+(all nine are applied to the live Neon project). Amounts are minor units (kobo); the columns are still named `*_cents`.
 Tables: `users`, `products`, `orders`, `order_items`. Money is **integer cents**, format only at the edge
 (`lib/money.ts`). `order_items` copies name and price at purchase time. Never build SQL by string
 concatenation: use the tagged template from `sql()` so values are parameters.
@@ -136,8 +136,14 @@ A user logs in on both; adding to the cart on the web shows up on the phone almo
 - **Milestone 10 ✅ Admin in the app**: an **Admin** tab, shown only when `user.isAdmin`, with Orders (move status, cancel, resend email, send missing emails), Products
   (add, stock, hide/show, photo from the gallery, shrunk to 1400 px JPEG on the phone) and Discounts (create, on/off). It uses the same admin endpoints as the website;
   the new `GET` list endpoints answer 404 to non-admins (test in `admin-api.test.ts`).
-- **Milestones 11 and 12 (planned, in this order):** accounts (confirmation email, welcome email for email and Google sign-ups, forgot/reset password; an unconfirmed
-  email does **not** block login, a banner offers Resend; existing accounts count as confirmed), then a better profile (photo, phone, change or set password, delete account), on the website and in the app.
+- **Milestone 11 ✅ Account emails and passwords** (website and app): sign-up by email sends **"Welcome to Shopora: confirm your email"** (24 h, single-use link,
+  `/verify-email` waits for a click); a **new Google account** gets **"Welcome to Shopora"** (already verified); **Forgot password** (`/forgot-password`, link 30 min, single-use,
+  `/reset-password`; the answer is identical for known and unknown emails; 5 per 15 min per IP and 3 per 15 min per address) also lets a Google-only account **add** a password.
+  A reset signs the account out everywhere, doesn't sign this device in, and counts as proof of the address. **An unconfirmed email never blocks login**: a banner (website)
+  / notice (app) offers Resend (`POST /api/auth/resend-verification`, 3 per 15 min). Tokens: 256 random bits, only the SHA-256 hash stored (`users.*_token_hash/_expires`,
+  `server/tokens.ts`, `db/account-tokens.ts`, `account-email.ts`); links are built from `siteUrl()`, never the Host header; the new password is validated before the link is used up.
+  Existing accounts are **not** mass-verified (that would let an unverified password account be taken over via Google); they just see the banner. Tests: `account-flow.test.ts`.
+- **Milestone 12 (planned):** a better profile (photo, phone, change or set password, delete account), on the website and in the app.
 - **Milestone 9 🟡 Phone testing**: published with EAS Update (Expo account `chloetrini`, project `@chloetrini/shopora`, id `2bfc96ad-2189-4eed-8ab2-cf773801ac1f`,
   branch `preview`). Open in Expo Go: `exp://u.expo.dev/2bfc96ad-2189-4eed-8ab2-cf773801ac1f/group/<update group id>` or the QR on the update's page
   in the Expo dashboard. **Still to do by hand:** test on a real phone, web to phone cart sync both ways. To publish a new version:
@@ -172,6 +178,10 @@ Paystack, so the page you return to shows your account avatar. If the hand-off f
 | `POST /api/auth/google/app` | – `{ code, verifier }` | `{ user, token }` (the app's Google sign-in, see above) |
 | `POST /api/auth/handoff` | ✓ | `{ code }` (60 s) for `GET /api/auth/handoff?code&next` which sets the cookie and redirects (same-site `next` only) |
 | `GET /api/admin/orders`, `GET /api/admin/products`, `GET /api/admin/discounts` | admin | the lists for the app's Admin tab (orders carry `next`: the statuses each may move to); anyone else gets 404 |
+| `POST /api/auth/verify-email` | – `{ token }` | `{ email }`; 400 `invalid_token` |
+| `POST /api/auth/resend-verification` | ✓ | sends a new confirm link (3 per 15 min) |
+| `POST /api/auth/forgot-password` | – `{ email }` | same message whether or not the account exists |
+| `POST /api/auth/reset-password` | – `{ token, newPassword }` | 200, or 400 `invalid_token`; no session cookie |
 | `GET /api/cart` | ✓ | `{ items }` (CartItem + `slug`, `imageUrl`, `stock`) |
 | `POST /api/cart` | ✓ `{ productId, quantity }` | adds; 404 unknown product, 409 `cart_full` (20 lines) |
 | `PUT /api/cart` | ✓ `{ items: [{ productId, quantity }] }` | merges a guest cart |

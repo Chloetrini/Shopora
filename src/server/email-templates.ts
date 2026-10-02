@@ -95,3 +95,52 @@ export function lowStockEmail(items: { name: string; stock: number }[]) {
 </body></html>`
   return { subject: `Low stock: ${items.map((i) => i.name).join(', ')}`.slice(0, 120), text, html }
 }
+
+/* ---------- Account emails ---------- */
+
+const button = (href: string, label: string) =>
+  `<p style="margin:24px 0"><a href="${escapeHtml(href)}" style="background:#0b6b63;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:999px;display:inline-block;font-weight:600">${escapeHtml(label)}</a></p>`
+
+const shell = (title: string, body: string) =>
+  `<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#1f2430;max-width:520px;margin:0 auto;padding:16px"><h1 style="font-size:22px">${title}</h1>${body}</body></html>`
+
+const firstName = (fullName: string) => fullName.trim().split(/\s+/)[0] || 'there'
+
+/** Sign-up with email and password: a welcome that asks them to confirm the address. The name is escaped in the HTML. */
+export function verifyEmailMessage(fullName: string, link: string) {
+  const name = firstName(fullName)
+  const text = [
+    `Hi ${name},`,
+    '',
+    `Welcome to ${SITE.name}! Please confirm your email address so we know it's really you.`,
+    '',
+    `Confirm your email: ${link}`,
+    '',
+    'This link works once and expires in 24 hours. If you didn’t create an account, you can ignore this email.',
+  ].join('\n')
+  const html = shell(`Welcome to ${SITE.name}, ${escapeHtml(name)}`, `<p>Please confirm your email address so we know it's really you.</p>${button(link, 'Confirm your email')}<p style="color:#5d6775;font-size:13px">This link works once and expires in 24 hours. If you didn’t create an account, you can ignore this email.</p>`)
+  return { subject: `Welcome to ${SITE.name}: confirm your email`, text, html }
+}
+
+/** Sign-up with Google: the address is already verified, so this is only a welcome. */
+export function welcomeEmailMessage(fullName: string) {
+  const name = firstName(fullName)
+  const link = siteUrl()
+  const text = [`Hi ${name},`, '', `Welcome to ${SITE.name}! Your account is ready.`, 'Browse the shop, keep your cart on the website and the app, and track every order.', '', link].join('\n')
+  const html = shell(`Welcome to ${SITE.name}, ${escapeHtml(name)}`, `<p>Your account is ready. Browse the shop, keep your cart on the website and the app, and track every order.</p>${button(link, 'Start shopping')}`)
+  return { subject: `Welcome to ${SITE.name}`, text, html }
+}
+
+export function resetPasswordMessage(fullName: string, link: string) {
+  const name = firstName(fullName)
+  const text = [
+    `Hi ${name},`,
+    '',
+    `Someone asked to reset the password for your ${SITE.name} account. To choose a new one, open this link:`,
+    link,
+    '',
+    'It works once and expires in 30 minutes. If it wasn’t you, ignore this email and your password stays as it is.',
+  ].join('\n')
+  const html = shell('Reset your password', `<p>Hi ${escapeHtml(name)}, someone asked to reset the password for your ${escapeHtml(SITE.name)} account.</p>${button(link, 'Choose a new password')}<p style="color:#5d6775;font-size:13px">It works once and expires in 30 minutes. If it wasn’t you, ignore this email and your password stays as it is.</p>`)
+  return { subject: `Reset your ${SITE.name} password`, text, html }
+}

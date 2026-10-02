@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View, type ImageStyle, type TextInputProps, type ViewStyle } from 'react-native'
-import { imageUri } from './api'
+import { api, imageUri } from './api'
+import { useAuth } from './auth'
 import { useTheme } from './theme'
 
 export function Button({ label, onPress, disabled, busy, variant = 'primary', style }: {
@@ -54,6 +56,33 @@ export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ color: c.primaryForeground, fontWeight: '700', fontSize: size * 0.42 }}>{(name.trim()[0] ?? '?').toUpperCase()}</Text>
+    </View>
+  )
+}
+
+/** "Please confirm your email" for a signed-in person who hasn't yet. It never blocks anything. */
+export function VerifyNotice() {
+  const c = useTheme()
+  const { user } = useAuth()
+  const [state, setState] = useState<'idle' | 'busy' | 'sent' | 'error'>('idle')
+  if (!user || user.emailVerified !== false) return null
+  async function resend() {
+    setState('busy')
+    try {
+      await api('/api/auth/resend-verification', { method: 'POST' })
+      setState('sent')
+    } catch {
+      setState('error')
+    }
+  }
+  return (
+    <View style={{ backgroundColor: c.primarySoft, padding: 12, borderRadius: 12, margin: 12, gap: 6 }}>
+      <Text style={{ color: c.foreground }}>
+        {state === 'sent' ? `We’ve sent a new link to ${user.email}. Check your inbox and spam.` : `Please confirm your email ${user.email}. We sent you a link.`}
+      </Text>
+      {state !== 'sent' && (
+        <Text onPress={resend} style={{ color: c.primary, fontWeight: '600' }}>{state === 'busy' ? 'Sending…' : state === 'error' ? 'Couldn’t send it. Tap to try again.' : 'Resend the link'}</Text>
+      )}
     </View>
   )
 }

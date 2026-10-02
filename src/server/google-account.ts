@@ -11,19 +11,25 @@ export type VerifiedGoogleProfile = { sub: string; email: string; name?: string 
  *  3. Otherwise create a verified account with no password.
  */
 export async function resolveGoogleUser(p: VerifiedGoogleProfile): Promise<UserRecord> {
+  return (await resolveGoogleAccount(p)).user
+}
+
+/** Same, and says whether this sign-in just created the account (so the caller can send the welcome email). */
+export async function resolveGoogleAccount(p: VerifiedGoogleProfile): Promise<{ user: UserRecord; created: boolean }> {
   const byGoogle = await findUserByGoogleId(p.sub)
-  if (byGoogle) return byGoogle
+  if (byGoogle) return { user: byGoogle, created: false }
   const email = p.email.toLowerCase()
   const byEmail = await findUserByEmail(email)
   if (byEmail) {
     if (byEmail.googleId && byEmail.googleId !== p.sub) throw new Error('This email is linked to a different Google account')
-    return linkGoogle(byEmail.id, p.sub, !byEmail.emailVerified)
+    return { user: await linkGoogle(byEmail.id, p.sub, !byEmail.emailVerified), created: false }
   }
-  return createUser({
+  const user = await createUser({
     email,
     fullName: (p.name ?? '').trim().slice(0, 120) || email.split('@')[0],
     passwordHash: null,
     googleId: p.sub,
     emailVerified: true,
   })
+  return { user, created: true }
 }

@@ -52,6 +52,7 @@ export function LoginView({ next, error, googleEnabled }: { next: string; error?
       <form onSubmit={onSubmit} noValidate className="space-y-4">
         <Field name="email" label="Email" type="email" autoComplete="email" error={errors.email} />
         <Field name="password" label="Password" type="password" autoComplete="current-password" error={errors.password} />
+        <p className="-mt-2 text-right text-sm"><Link href="/forgot-password" className="text-primary underline">Forgot password?</Link></p>
         {formError && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{formError}</p>}
         <button type="submit" disabled={busy} className="w-full rounded-md bg-primary px-4 py-2.5 font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
           {busy ? 'Logging in…' : 'Log in'}
