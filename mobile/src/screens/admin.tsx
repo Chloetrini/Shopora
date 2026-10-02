@@ -4,7 +4,8 @@ import * as ImageManipulator from 'expo-image-manipulator'
 import * as ImagePicker from 'expo-image-picker'
 import { useCallback, useState } from 'react'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
-import { api, apiUpload } from '../api'
+import { api, ApiError, apiUpload } from '../api'
+import { useAuth } from '../auth'
 import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
 import { useTheme } from '../theme'
@@ -13,13 +14,17 @@ import { Button, Center, Field, Note, Photo } from '../ui'
 
 type Tab = 'orders' | 'products' | 'codes'
 const CATEGORIES = ['bags', 'accessories', 'tech', 'home', 'stationery', 'outdoors', 'clothing']
-const msg = (e: unknown) => (e instanceof Error ? e.message : 'Something went wrong. Try again.')
+const msg = (e: unknown) => (e instanceof ApiError ? `${e.message} (${e.status || 'no connection'})` : e instanceof Error ? e.message : 'Something went wrong. Try again.')
 
 export function AdminScreen() {
   const c = useTheme()
   const [tab, setTab] = useState<Tab>('orders')
+  const { user } = useAuth()
   return (
     <View style={{ flex: 1, backgroundColor: c.background }}>
+      <Text style={{ color: c.muted, textAlign: 'center', paddingTop: 8, fontSize: 12 }}>
+        Signed in as {user?.email ?? 'nobody'}{user?.isAdmin ? ' (admin)' : ' (not an admin)'}
+      </Text>
       <View style={{ flexDirection: 'row', gap: 8, padding: 12 }}>
         {(['orders', 'products', 'codes'] as Tab[]).map((t) => (
           <Pressable key={t} onPress={() => setTab(t)} style={{ flex: 1, paddingVertical: 9, borderRadius: 999, alignItems: 'center', borderWidth: 1, borderColor: tab === t ? c.primary : c.border, backgroundColor: tab === t ? c.primary : c.surface }}>
@@ -93,7 +98,7 @@ function AdminOrders() {
     setBusy('')
   }
 
-  if (!data) return <Center><Note text={error || 'Loading orders…'} error={!!error} /></Center>
+  if (!data) return <Center><Note text={error || 'Loading orders…'} error={!!error} />{error ? <Button label="Try again" variant="outline" onPress={reload} /> : null}</Center>
   return (
     <ScrollView contentContainerStyle={{ padding: 12, gap: 10 }}>
       {note ? <Note text={note} /> : null}
@@ -162,7 +167,7 @@ function AdminProducts() {
     setBusy('')
   }
 
-  if (!data) return <Center><Note text={error || 'Loading products…'} error={!!error} /></Center>
+  if (!data) return <Center><Note text={error || 'Loading products…'} error={!!error} />{error ? <Button label="Try again" variant="outline" onPress={reload} /> : null}</Center>
   return (
     <ScrollView contentContainerStyle={{ padding: 12, gap: 10 }} keyboardShouldPersistTaps="handled">
       {note ? <Note text={note} /> : null}
@@ -251,7 +256,7 @@ function AdminCodes() {
     setBusy('')
   }
 
-  if (!data) return <Center><Note text={error || 'Loading codes…'} error={!!error} /></Center>
+  if (!data) return <Center><Note text={error || 'Loading codes…'} error={!!error} />{error ? <Button label="Try again" variant="outline" onPress={reload} /> : null}</Center>
   return (
     <ScrollView contentContainerStyle={{ padding: 12, gap: 10 }} keyboardShouldPersistTaps="handled">
       <Card>
