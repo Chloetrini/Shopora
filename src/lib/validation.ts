@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { LIMITS } from '@/constants/shop'
+import { CATEGORIES } from '@/lib/catalog'
 
 const text = (label: string, max: number) =>
   z.string().trim().min(1, `Enter ${label}`).max(max, `${label[0].toUpperCase()}${label.slice(1)} is too long`)
@@ -81,6 +82,16 @@ export const discountCreateSchema = z
   .strict()
   .refine((d) => (d.percentOff != null) !== (d.amountOffNaira != null), { message: 'Choose a percentage OR an amount', path: ['percentOff'] })
   .refine((d) => !d.expiresAt || !Number.isNaN(Date.parse(d.expiresAt)), { message: 'Enter a valid date', path: ['expiresAt'] })
+
+export const productCreateSchema = z
+  .object({
+    name: z.string().trim().min(2, 'Give the product a name').max(120, 'The name is too long'),
+    description: z.string().trim().max(2000, 'The description is too long').optional().default(''),
+    priceNaira: z.number().int('Enter the price in whole naira').min(1, 'Enter a price').max(100_000_000, 'That price is too high'),
+    stock: z.number().int('Enter a whole number').min(0).max(100000),
+    category: z.enum(CATEGORIES.map((c) => c.slug) as [string, ...string[]], 'Choose a category'),
+  })
+  .strict()
 
 export const zoneCreateSchema = z
   .object({

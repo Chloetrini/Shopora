@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { CATEGORIES } from '@/lib/catalog'
 import { shrinkImage } from '@/lib/shrink-image'
 
 /** Small helper: call the API, then refresh the server-rendered page. Returns the error text, or ''. */
@@ -59,6 +60,59 @@ export function ProductAdminRow({ id, stock, active, hasUpload }: { id: string; 
       </label>
       <Msg m={m} />
     </div>
+  )
+}
+
+export function ProductForm() {
+  const router = useRouter()
+  const [busy, setBusy] = useState(false)
+  const [m, setM] = useState<{ ok: boolean; text: string } | null>(null)
+
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.currentTarget
+    const f = new FormData(form)
+    const photo = f.get('photo')
+    setBusy(true)
+    setM(null)
+    const r = await send('/api/admin/products', 'POST', {
+      name: String(f.get('name') ?? ''), description: String(f.get('description') ?? ''),
+      priceNaira: Number(f.get('priceNaira')), stock: Number(f.get('stock')), category: String(f.get('category') ?? ''),
+    })
+    if (!r.ok) {
+      setM({ ok: false, text: r.message })
+      setBusy(false)
+      return
+    }
+    // The product exists now. A photo that fails to upload can be added later from its row.
+    let text = 'Product added'
+    if (photo instanceof File && photo.size > 0) {
+      const up = await send(`/api/admin/products/${String(r.body?.id)}/image`, 'PUT', undefined, await shrinkImage(photo))
+      text = up.ok ? 'Product added with its photo' : `Product added, but the photo didn’t upload: ${up.message}`
+    }
+    setM({ ok: true, text })
+    setBusy(false)
+    form.reset()
+    router.refresh()
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="mb-6 grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
+      <h2 className="font-semibold sm:col-span-2">Add a product</h2>
+      <div className="sm:col-span-2"><label htmlFor="p-name" className="block text-sm">Name</label><input id="p-name" name="name" required minLength={2} maxLength={120} className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="p-price" className="block text-sm">Price (naira)</label><input id="p-price" name="priceNaira" type="number" required min={1} step={1} className={`${input} mt-1 w-full`} /></div>
+      <div><label htmlFor="p-stock" className="block text-sm">Stock</label><input id="p-stock" name="stock" type="number" required min={0} step={1} defaultValue={10} className={`${input} mt-1 w-full`} /></div>
+      <div>
+        <label htmlFor="p-cat" className="block text-sm">Category</label>
+        <select id="p-cat" name="category" required className={`${input} mt-1 w-full`}>
+          {CATEGORIES.map((c) => <option key={c.slug} value={c.slug}>{c.label}</option>)}
+        </select>
+      </div>
+      <div><label htmlFor="p-photo" className="block text-sm">Photo (optional)</label><input id="p-photo" name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="mt-1 w-full text-sm" /></div>
+      <div className="sm:col-span-2"><label htmlFor="p-desc" className="block text-sm">Description (optional)</label><textarea id="p-desc" name="description" rows={3} maxLength={2000} className={`${input} mt-1 w-full`} /></div>
+      <div className="sm:col-span-2"><button type="submit" disabled={busy} className={button}>{busy ? 'Adding…' : 'Add product'}</button></div>
+      <div className="sm:col-span-2"><Msg m={m} /></div>
+    </form>
   )
 }
 

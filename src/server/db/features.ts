@@ -1,4 +1,5 @@
 import 'server-only'
+import { slugify } from '@/lib/slug'
 import { normalizeLocation, type Zone } from '@/lib/delivery'
 import { sql } from './client'
 import { toProduct, type Product } from './products'
@@ -203,6 +204,25 @@ export async function setDiscountActive(code: string, active: boolean): Promise<
 }
 
 /* ---------- Products (admin) ---------- */
+
+/** Adds a product. The slug comes from the name; if it is taken, "-2", "-3"… is added. Prices are stored in kobo. */
+export async function createProduct(p: { name: string; description: string; priceNaira: number; stock: number; category: string }): Promise<{ id: string; slug: string }> {
+  const base = slugify(p.name)
+  for (let n = 1; n <= 30; n++) {
+    const slug = n === 1 ? base : `${base.slice(0, 70)}-${n}`
+    try {
+      const rows = await sql()`
+        insert into products (slug, name, description, price_cents, currency, category, stock)
+        values (${slug}, ${p.name}, ${p.description}, ${p.priceNaira * 100}, 'NGN', ${p.category}, ${p.stock})
+        returning id`
+      return { id: rows[0].id as string, slug }
+    } catch (e) {
+      if (typeof e === 'object' && e && 'code' in e && e.code === '23505') continue // slug taken, try the next one
+      throw e
+    }
+  }
+  throw new Error('Could not find a free slug')
+}
 
 export type AdminProduct = Product & { active: boolean; hasUploadedImage: boolean }
 

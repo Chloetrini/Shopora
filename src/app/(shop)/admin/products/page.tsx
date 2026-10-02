@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { AdminTabs } from '@/components/shop/admin-tabs'
-import { ProductAdminRow } from '@/components/shop/admin-forms'
+import { ProductAdminRow, ProductForm } from '@/components/shop/admin-forms'
 import { ProductImage } from '@/components/shop/product-image'
 import { formatMoney } from '@/lib/money'
 import { getSessionUser } from '@/server/current-user'
@@ -18,8 +18,9 @@ export default async function AdminProductsPage() {
   return (
     <div>
       <h1 className="font-display text-3xl font-semibold">Manage products</h1>
-      <p className="mb-5 mt-1 text-muted-foreground">Change stock, hide a product, or upload your own photo (JPG, PNG or WebP; big phone photos are shrunk for you). Restocking a sold-out product emails the people waiting for it.</p>
+      <p className="mb-5 mt-1 text-muted-foreground">Add a product, change stock, hide a product, or upload your own photo (JPG, PNG or WebP; big phone photos are shrunk for you). Restocking a sold-out product emails the people waiting for it.</p>
       <AdminTabs current="/admin/products" />
+      <ProductForm />
       <ul className="space-y-3">
         {products.map((p) => (
           <li key={p.id} className="flex gap-4 rounded-2xl border border-border bg-surface p-4">

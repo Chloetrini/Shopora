@@ -152,6 +152,7 @@ by the session's `userId` (rule 1); other users' carts are unreachable by constr
 | `PATCH /api/cart/[productId]` | ✓ `{ quantity }` | sets the quantity; 0 removes |
 | `DELETE /api/cart/[productId]`, `DELETE /api/cart` | ✓ | removes a line / empties the cart |
 | `GET /api/products`, `GET /api/products/[slug]` | – | `{ products }` / `{ product }` |
+| `POST /api/admin/products` | admin `{ name, description?, priceNaira, stock, category }` | 201 `{ id, slug }`; the slug comes from the name (`-2`, `-3` if taken); the photo is uploaded afterwards via `PUT /api/admin/products/[id]/image` |
 | `GET /api/orders` | ✓ | `{ orders }` (my orders) |
 | `GET /api/orders/[id]` | – (the unguessable id is the key) | `{ order }` with items and timeline |
 
