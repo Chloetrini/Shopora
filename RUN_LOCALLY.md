@@ -3,6 +3,14 @@
 You need a computer with **Node.js 22** (https://nodejs.org, the LTS download) and **Git** (https://git-scm.com).
 Check them in a terminal: `node -v` should say v22 or higher, `git --version` should print a version.
 
+## Fastest way (Mac or Linux)
+
+After step 1 below, run **one command** in the project folder and it does steps 2 and 3 for you (it asks you for the Neon connection string):
+
+```bash
+bash setup-local.sh
+```
+
 ## 1. Get the code
 
 ```bash
