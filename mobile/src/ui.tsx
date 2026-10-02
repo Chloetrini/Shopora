@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ActivityIndicator, Image, Pressable, StyleSheet, Text, TextInput, View, type ImageStyle, type TextInputProps, type ViewStyle } from 'react-native'
-import { api, imageUri } from './api'
+import { api, getToken, imageUri } from './api'
+import { API_URL } from './config'
 import { useAuth } from './auth'
 import { useTheme } from './theme'
 
@@ -51,8 +52,13 @@ export function Photo({ uri, style }: { uri: string | null | undefined; style?: 
 }
 
 /** A round badge with the person's first letter, like the one on the website. */
-export function Avatar({ name, size = 36 }: { name: string; size?: number }) {
+export function Avatar({ name, uri, size = 36 }: { name: string; uri?: string | null; size?: number }) {
   const c = useTheme()
+  const token = getToken()
+  // The photo is only served to its owner, so the request carries the login token.
+  if (uri && token) {
+    return <Image source={{ uri: `${API_URL}${uri}`, headers: { Authorization: `Bearer ${token}` } }} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.border }} />
+  }
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.primary, alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ color: c.primaryForeground, fontWeight: '700', fontSize: size * 0.42 }}>{(name.trim()[0] ?? '?').toUpperCase()}</Text>

@@ -3,5 +3,6 @@ export type RootStack = {
   Product: { slug: string; name?: string }
   Checkout: undefined
   Order: { id: string }
+  Profile: undefined
   Login: { mode?: 'login' | 'register' } | undefined
 }

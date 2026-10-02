@@ -1,4 +1,5 @@
-export type User = { id: string; email: string; fullName: string; isAdmin?: boolean; emailVerified?: boolean }
+export type User = { id: string; email: string; fullName: string; isAdmin?: boolean; emailVerified?: boolean
+  phone?: string | null; avatarUrl?: string | null; hasPassword?: boolean; googleLinked?: boolean }
 
 export type Product = {
   id: string; slug: string; name: string; description: string

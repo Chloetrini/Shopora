@@ -2,6 +2,7 @@ import { API_URL } from './config'
 
 let token: string | null = null
 export const setToken = (t: string | null) => { token = t }
+export const getToken = () => token
 
 export class ApiError extends Error {
   constructor(message: string, public status: number, public code?: string, public details?: { path: string; message: string }[]) {

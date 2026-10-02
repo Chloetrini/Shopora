@@ -3,10 +3,12 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useRef, useState } from 'react'
+import { UserAvatar } from '@/components/shop/user-avatar'
 import { useDismiss } from '@/hooks/use-dismiss'
 import type { PublicUser } from '@/server/db/users'
 
 const ITEMS = [
+  { href: '/profile', label: 'Your profile' },
   { href: '/orders', label: 'My orders' },
   { href: '/wishlist', label: 'Wishlist' },
   { href: '/addresses', label: 'Saved addresses' },
@@ -46,8 +48,8 @@ export function UserMenu({ user }: { user: PublicUser | null }) {
   return (
     <div ref={ref} className="relative">
       <button type="button" onClick={() => setOpen((o) => !o)} aria-haspopup="menu" aria-expanded={open} aria-label="Account menu"
-        className="inline-flex size-10 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground hover:opacity-90">
-        {(user.fullName.trim()[0] ?? '?').toUpperCase()}
+        className="inline-flex rounded-full hover:opacity-90">
+        <UserAvatar user={user} />
       </button>
       {open && (
         <div role="menu" className="absolute right-0 top-12 z-40 w-60 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">

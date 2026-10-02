@@ -10,6 +10,7 @@ import { CartProvider, useCart } from './cart'
 import type { RootStack } from './navigation'
 import { AccountScreen, LoginScreen } from './screens/account'
 import { AdminScreen } from './screens/admin'
+import { ProfileScreen } from './screens/profile'
 import { CartScreen } from './screens/cart'
 import { CheckoutScreen } from './screens/checkout'
 import { OrderScreen, OrdersScreen } from './screens/orders'
@@ -26,7 +27,7 @@ function HeaderAccount({ onPress }: { onPress: () => void }) {
   const { user } = useAuth()
   return (
     <Pressable onPress={onPress} accessibilityLabel={user ? `Account of ${user.fullName}` : 'Log in'} style={{ marginRight: 14 }}>
-      {user ? <Avatar name={user.fullName} size={32} /> : <Text style={{ color: c.primary, fontWeight: '600' }}>Log in</Text>}
+      {user ? <Avatar name={user.fullName} uri={user.avatarUrl} size={32} /> : <Text style={{ color: c.primary, fontWeight: '600' }}>Log in</Text>}
     </Pressable>
   )
 }
@@ -59,6 +60,7 @@ function Root() {
         <Stack.Screen name="Product" component={ProductScreen} options={({ route }) => ({ title: route.params.name ?? 'Product' })} />
         <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
         <Stack.Screen name="Order" component={OrderScreen} options={{ title: 'Your order' }} />
+        <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Your profile' }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: '', presentation: 'modal' }} />
       </Stack.Navigator>
     </NavigationContainer>

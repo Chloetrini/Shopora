@@ -116,3 +116,21 @@ export const zonePatchSchema = z
     active: z.boolean().optional(),
   })
   .strict()
+
+/** A phone number as people type it: digits, spaces, dashes, brackets and a leading +. Empty means "none". */
+export const phoneField = z
+  .string()
+  .trim()
+  .max(20, 'That phone number is too long')
+  .refine((v) => v === '' || /^\+?[0-9 ()-]{7,20}$/.test(v), 'Enter a valid phone number')
+  .transform((v) => (v === '' ? null : v))
+
+export const profileSchema = z
+  .object({ fullName: text('your full name', LIMITS.nameMax).optional(), phone: phoneField.optional() })
+  .strict()
+
+export const passwordChangeSchema = z
+  .object({ currentPassword: z.string().max(72).optional(), newPassword: newPasswordField })
+  .strict()
+
+export const deleteAccountSchema = z.object({ password: z.string().max(72).optional(), confirmEmail: z.string().trim().toLowerCase().max(254).optional() }).strict()

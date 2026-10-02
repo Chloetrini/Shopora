@@ -14,6 +14,8 @@ type AuthApi = {
   register: (fullName: string, email: string, password: string) => Promise<void>
   loginWithGoogle: () => Promise<void>
   refreshUser: () => Promise<void>
+  updateUser: (u: User) => void
+  replaceToken: (t: string) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -75,6 +77,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (email, password) => finish(await api('/api/auth/login', { method: 'POST', body: { email, password } })),
       register: async (fullName, email, password) => finish(await api('/api/auth/register', { method: 'POST', body: { fullName, email, password } })),
       refreshUser,
+      updateUser: (u) => setUser(u),
+      replaceToken: async (t) => {
+        setToken(t)
+        await SecureStore.setItemAsync(KEY, t)
+      },
       loginWithGoogle: async () => finish(await api('/api/auth/google/app', { method: 'POST', body: await googleSignIn() })),
       logout: async () => {
         setToken(null)
