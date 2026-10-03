@@ -1,11 +1,14 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { SITE } from '@/constants/site'
 import './globals.css'
 
 export const metadata: Metadata = {
   title: { default: `${SITE.name}: ${SITE.tagline}`, template: `%s | ${SITE.name}` },
   description: SITE.description,
+  appleWebApp: { capable: true, title: SITE.name, statusBarStyle: 'default' },
 }
+
+export const viewport: Viewport = { themeColor: '#0b6b63' }
 
 // Sets the theme before first paint so there is no flash. Key must match any future toggle.
 const themeScript = `try{var t=localStorage.getItem('shopora-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}`

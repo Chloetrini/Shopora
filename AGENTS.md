@@ -319,3 +319,6 @@ Changing `SESSION_SECRET` signs everyone out.
 ## Home page and cart layout (latest)
 - Hero right side is three slowly scrolling product columns (middle one reverses, pauses on hover; static when fewer than 6 products). Below it, a numbered 3-column assurance section.
 - Cart page: two columns, lines with photo, quantity stepper (1 to 10) and Remove, sticky summary card.
+
+## Install to home screen
+- `src/app/manifest.ts` + `public/icons/` make the site installable (standalone display, teal theme). iPhone: Safari Share, then Add to Home Screen. Android Chrome: menu, Install app.
