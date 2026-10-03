@@ -90,7 +90,7 @@ export function VerifyNotice() {
     }
   }
   return (
-    <View style={{ backgroundColor: c.primarySoft, padding: 12, borderRadius: 12, margin: 12, gap: 6 }}>
+    <View style={{ backgroundColor: c.primarySoft, padding: 12, borderRadius: 8, margin: 12, gap: 6 }}>
       <Text style={{ color: c.foreground }}>
         {state === 'sent' ? `We’ve sent a new link to ${user.email}. Check your inbox and spam.` : `Please confirm your email ${user.email}. We sent you a link.`}
       </Text>
@@ -111,6 +111,6 @@ export function Note({ text, error }: { text: string; error?: boolean }) {
 }
 
 const s = StyleSheet.create({
-  button: { minHeight: 46, borderRadius: 999, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
-  input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15 },
+  button: { minHeight: 46, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  input: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, fontSize: 15 },
 })

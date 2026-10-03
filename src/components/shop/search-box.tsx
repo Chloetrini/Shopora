@@ -120,14 +120,14 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
             onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(-1) }}
             onFocus={() => setOpen(true)}
             onKeyDown={onKeyDown}
-            className="w-52 rounded-full border border-border bg-surface py-2 pl-10 pr-4 text-sm sm:w-72"
+            className="w-52 rounded-md border border-border bg-surface py-2 pl-10 pr-4 text-sm sm:w-72"
           />
         </div>
-        <button type="submit" className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-ink-foreground">Search</button>
+        <button type="submit" className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">Search</button>
       </form>
 
       {showList && (
-        <ul id={listId} role="listbox" className="absolute right-0 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
+        <ul id={listId} role="listbox" className="absolute right-0 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
           {!typed && (
             <>
               <li className="flex items-center justify-between px-4 pb-1 pt-3 text-xs text-muted-foreground">
@@ -155,7 +155,7 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
                 <span>Or browse:</span>
                 {categories.slice(0, 4).map((c) => (
                   <button key={c.slug} type="button" onPointerDown={(e) => { e.preventDefault(); go(catalogHref({ category: c.slug, sort })) }}
-                    className="rounded-full border border-border px-2.5 py-0.5 text-xs hover:border-primary">{c.label}</button>
+                    className="rounded-md border border-border px-2.5 py-0.5 text-xs hover:border-primary">{c.label}</button>
                 ))}
               </p>
             </li>

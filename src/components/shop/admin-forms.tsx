@@ -18,7 +18,7 @@ async function send(url: string, method: string, body?: unknown, raw?: Blob): Pr
 }
 
 const input = 'rounded-lg border border-border bg-background px-2 py-1.5 text-sm'
-const button = 'rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-60'
+const button = 'rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-60'
 
 function Msg({ m }: { m: { ok: boolean; text: string } | null }) {
   return m ? <p role="status" className={`mt-1 w-full text-sm ${m.ok ? 'text-primary' : 'text-red-600 dark:text-red-400'}`}>{m.text}</p> : null
@@ -65,19 +65,19 @@ export function ProductAdminRow({ id, stock, active, hasUpload }: { id: string; 
         <input id={`stock-${id}`} name="stock" type="number" min={0} max={100000} defaultValue={stock} className={`${input} w-24`} />
         <button type="submit" disabled={busy} className={button}>Save</button>
       </form>
-      <button type="button" disabled={busy} onClick={() => save({ active: !active })} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">{active ? 'Hide from shop' : 'Show in shop'}</button>
-      <label className="cursor-pointer rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary">
+      <button type="button" disabled={busy} onClick={() => save({ active: !active })} className="rounded-md border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">{active ? 'Hide from shop' : 'Show in shop'}</button>
+      <label className="cursor-pointer rounded-md border border-border px-4 py-1.5 text-sm hover:border-primary">
         {hasUpload ? 'Replace photo' : 'Upload photo'}
         <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => upload(e.target.files?.[0])} />
       </label>
       {confirming ? (
         <span ref={confirmRef} className="flex items-center gap-2 text-sm">
           Delete this product?
-          <button type="button" disabled={busy} onClick={remove} className="rounded-full bg-red-600 px-4 py-1.5 font-medium text-white disabled:opacity-60">Yes, delete</button>
-          <button type="button" onClick={() => setConfirming(false)} className="rounded-full border border-border px-4 py-1.5 hover:border-primary">Cancel</button>
+          <button type="button" disabled={busy} onClick={remove} className="rounded-md bg-red-600 px-4 py-1.5 font-medium text-white disabled:opacity-60">Yes, delete</button>
+          <button type="button" onClick={() => setConfirming(false)} className="rounded-md border border-border px-4 py-1.5 hover:border-primary">Cancel</button>
         </span>
       ) : (
-        <button type="button" disabled={busy} onClick={() => setConfirming(true)} className="rounded-full border border-red-300 px-4 py-1.5 text-sm text-red-600 hover:border-red-500 disabled:opacity-60 dark:border-red-400/40 dark:text-red-400">Delete</button>
+        <button type="button" disabled={busy} onClick={() => setConfirming(true)} className="rounded-md border border-red-300 px-4 py-1.5 text-sm text-red-600 hover:border-red-500 disabled:opacity-60 dark:border-red-400/40 dark:text-red-400">Delete</button>
       )}
       <Msg m={m} />
     </div>
@@ -118,7 +118,7 @@ export function ProductForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mb-6 grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
+    <form onSubmit={onSubmit} className="mb-6 grid gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2">
       <h2 className="font-semibold sm:col-span-2">Add a product</h2>
       <div className="sm:col-span-2"><label htmlFor="p-name" className="block text-sm">Name</label><input id="p-name" name="name" required minLength={2} maxLength={120} className={`${input} mt-1 w-full`} /></div>
       <div><label htmlFor="p-price" className="block text-sm">Price (naira)</label><input id="p-price" name="priceNaira" type="number" required min={1} step={1} className={`${input} mt-1 w-full`} /></div>
@@ -158,7 +158,7 @@ export function DiscountForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
+    <form onSubmit={onSubmit} className="grid gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2">
       <h2 className="font-semibold sm:col-span-2">New discount code</h2>
       <div><label htmlFor="d-code" className="block text-sm">Code</label><input id="d-code" name="code" required maxLength={20} placeholder="WELCOME10" className={`${input} mt-1 w-full uppercase`} /></div>
       <div><label htmlFor="d-pct" className="block text-sm">Percent off (1 to 90)</label><input id="d-pct" name="percentOff" type="number" min={1} max={90} className={`${input} mt-1 w-full`} /></div>
@@ -175,7 +175,7 @@ export function DiscountToggle({ code, active }: { code: string; active: boolean
   const router = useRouter()
   const [busy, setBusy] = useState(false)
   return (
-    <button type="button" disabled={busy} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60"
+    <button type="button" disabled={busy} className="rounded-md border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60"
       onClick={async () => { setBusy(true); await send(`/api/admin/discounts/${encodeURIComponent(code)}`, 'PATCH', { active: !active }); setBusy(false); router.refresh() }}>
       {active ? 'Turn off' : 'Turn on'}
     </button>
@@ -203,7 +203,7 @@ export function ZoneForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-3 rounded-2xl border border-border bg-surface p-4 sm:grid-cols-2">
+    <form onSubmit={onSubmit} className="grid gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2">
       <h2 className="font-semibold sm:col-span-2">New delivery zone</h2>
       <div><label htmlFor="z-name" className="block text-sm">Name shown to buyers</label><input id="z-name" name="name" required maxLength={60} placeholder="Port Harcourt" className={`${input} mt-1 w-full`} /></div>
       <div><label htmlFor="z-country" className="block text-sm">Country (or * for everywhere else)</label><input id="z-country" name="country" required placeholder="Nigeria" className={`${input} mt-1 w-full`} /></div>
@@ -243,7 +243,7 @@ export function ZoneRow({ id, feeNaira, freeOverNaira, active }: { id: string; f
         <input id={`free-${id}`} name="freeOverNaira" type="number" min={1} defaultValue={freeOverNaira ?? ''} placeholder="never" className={`${input} w-32`} />
         <button type="submit" disabled={busy} className={button}>Save</button>
       </form>
-      <button type="button" disabled={busy} onClick={() => patch({ active: !active })} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">{active ? 'Turn off' : 'Turn on'}</button>
+      <button type="button" disabled={busy} onClick={() => patch({ active: !active })} className="rounded-md border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">{active ? 'Turn off' : 'Turn on'}</button>
       <Msg m={m} />
     </div>
   )

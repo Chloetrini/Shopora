@@ -175,7 +175,7 @@ export function CheckoutView({ testMode, defaults, addresses = [], zones = [] }:
                 <label htmlFor="discount" className="block text-sm font-medium">Discount code</label>
                 <div className="mt-1 flex gap-2">
                   <input id="discount" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={20} autoComplete="off" className="min-w-0 flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm" />
-                  <button type="button" onClick={applyCode} disabled={checkingCode || code.trim().length < 3} className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-ink-foreground disabled:opacity-60">{checkingCode ? '…' : 'Apply'}</button>
+                  <button type="button" onClick={applyCode} disabled={checkingCode || code.trim().length < 3} className="rounded-md bg-ink px-4 py-2 text-sm font-medium text-ink-foreground disabled:opacity-60">{checkingCode ? '…' : 'Apply'}</button>
                 </div>
                 {codeMsg && <p role="alert" className="mt-1 text-sm text-red-600 dark:text-red-400">{codeMsg}</p>}
                 {applied && (

@@ -35,7 +35,7 @@ export function CancelOrderButton({ orderId }: { orderId: string }) {
         <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border bg-surface p-3 text-sm">
           <span>Cancel this unpaid order?</span>
           <button type="button" onClick={() => setAsking(false)} className="underline">Keep it</button>
-          <button type="button" onClick={cancel} disabled={busy} className="rounded-full bg-ink px-4 py-1.5 font-medium text-ink-foreground disabled:opacity-60">{busy ? 'Cancelling…' : 'Yes, cancel'}</button>
+          <button type="button" onClick={cancel} disabled={busy} className="rounded-md bg-ink px-4 py-1.5 font-medium text-ink-foreground disabled:opacity-60">{busy ? 'Cancelling…' : 'Yes, cancel'}</button>
         </div>
       )}
       {error && <p role="alert" className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>}

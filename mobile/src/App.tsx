@@ -5,6 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { StatusBar } from 'expo-status-bar'
 import { Pressable, Text, useColorScheme } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { useEffect } from 'react'
+import { applySavedAppearance } from './appearance'
 import { AuthProvider, useAuth } from './auth'
 import { CartProvider, useCart } from './cart'
 import type { RootStack } from './navigation'
@@ -68,6 +70,7 @@ function Root() {
 }
 
 export default function App() {
+  useEffect(() => { void applySavedAppearance() }, [])
   return (
     <SafeAreaProvider>
       <AuthProvider>

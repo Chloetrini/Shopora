@@ -14,7 +14,7 @@ const msg = (e: unknown) => (e instanceof Error ? e.message : 'Something went wr
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   const c = useTheme()
   return (
-    <View style={{ backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>
+    <View style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>
       <Text style={{ color: c.foreground, fontWeight: '700', fontSize: 16 }}>{title}</Text>
       {children}
     </View>

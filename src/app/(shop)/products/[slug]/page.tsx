@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         <Link href="/#shop" className="hover:underline">Shop</Link> / <Link href={catalogHref({ category: product.category })} className="hover:underline">{categoryLabel(product.category)}</Link> / <span className="text-foreground">{product.name}</span>
       </nav>
       <div className="mt-6 grid gap-10 lg:grid-cols-2">
-        <div className="group overflow-hidden rounded-3xl">
+        <div className="group overflow-hidden rounded-xl">
           <ProductImage name={product.name} imageUrl={product.imageUrl} className="aspect-square" />
         </div>
         <div>
@@ -79,7 +79,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         </div>
         <ul className="mt-6 space-y-4">
           {reviews.map((r) => (
-            <li key={r.id} className="rounded-2xl border border-border bg-surface p-4">
+            <li key={r.id} className="rounded-lg border border-border bg-surface p-4">
               <div className="flex items-center justify-between gap-3">
                 <Stars value={r.rating} />
                 <span className="text-xs text-muted-foreground">{r.authorName}, {new Date(r.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium', timeZone: 'UTC' })}</span>

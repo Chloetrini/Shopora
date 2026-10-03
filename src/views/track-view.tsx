@@ -28,7 +28,7 @@ export function TrackView() {
   }
 
   return (
-    <div className="mx-auto max-w-md rounded-2xl border border-border bg-surface p-6">
+    <div className="mx-auto max-w-md rounded-lg border border-border bg-surface p-6">
       <h1 className="font-display text-3xl font-semibold">Track an order</h1>
       <p className="mt-2 text-sm text-muted-foreground">No account needed. Use the email you ordered with and the order number from your confirmation email (the first 8 characters are enough).</p>
       <form onSubmit={onSubmit} className="mt-5 space-y-4">
@@ -41,7 +41,7 @@ export function TrackView() {
           <input id="reference" name="reference" required minLength={8} placeholder="e.g. 4f0ecb8e" className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2" />
         </div>
         {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-        <button type="submit" disabled={busy} className="w-full rounded-full bg-primary px-5 py-2.5 font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
+        <button type="submit" disabled={busy} className="w-full rounded-md bg-primary px-5 py-2.5 font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
           {busy ? 'Looking…' : 'Track order'}
         </button>
       </form>

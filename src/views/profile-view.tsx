@@ -21,9 +21,9 @@ async function call(url: string, method: string, body?: unknown, raw?: Blob): Pr
 }
 
 const input = 'mt-1 w-full rounded-md border border-border bg-background px-3 py-2'
-const card = 'rounded-2xl border border-border bg-surface p-5'
-const primary = 'rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60'
-const outline = 'rounded-full border border-border px-5 py-2 text-sm font-medium hover:border-primary disabled:opacity-60'
+const card = 'rounded-lg border border-border bg-surface p-5'
+const primary = 'rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60'
+const outline = 'rounded-md border border-border px-5 py-2 text-sm font-medium hover:border-primary disabled:opacity-60'
 
 function Notice({ r }: { r: Result | null }) {
   return r ? <p role="status" className={`text-sm ${r.ok ? 'text-primary' : 'text-red-600 dark:text-red-400'}`}>{r.message}</p> : null
@@ -190,7 +190,7 @@ export function ProfileView({ user }: { user: PublicUser }) {
                 </div>
               )}
               <div className="flex flex-wrap items-center gap-3">
-                <button type="submit" disabled={busy === 'delete'} className="rounded-full bg-red-600 px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60">{busy === 'delete' ? 'Deleting…' : 'Delete account and everything in it'}</button>
+                <button type="submit" disabled={busy === 'delete'} className="rounded-md bg-red-600 px-5 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60">{busy === 'delete' ? 'Deleting…' : 'Delete account and everything in it'}</button>
                 <button type="button" onClick={() => setConfirmDelete(false)} className={outline}>Cancel</button>
               </div>
               <Notice r={delMsg} />

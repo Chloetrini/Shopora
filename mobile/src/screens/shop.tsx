@@ -85,8 +85,8 @@ export function ShopScreen() {
       keyboardShouldPersistTaps="handled"
       keyExtractor={(p) => p.id}
       numColumns={2}
-      columnWrapperStyle={{ gap: 12, paddingHorizontal: 12 }}
-      contentContainerStyle={{ gap: 12, paddingBottom: 24 }}
+      columnWrapperStyle={{ gap: 14, paddingHorizontal: 14 }}
+      contentContainerStyle={{ gap: 28, paddingBottom: 28 }}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={async () => { setRefreshing(true); await load(); setRefreshing(false) }} />}
       ListHeaderComponent={
         <View style={{ padding: 12, gap: 10 }}>
@@ -101,10 +101,10 @@ export function ShopScreen() {
             autoCorrect={false}
             placeholder="Search the shop"
             placeholderTextColor={c.muted}
-            style={{ borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, color: c.foreground, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 }}
+            style={{ borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, color: c.foreground, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 10 }}
           />
           {showSuggestions && (
-            <View style={{ backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, borderRadius: 14, overflow: 'hidden' }}>
+            <View style={{ backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, borderRadius: 8, overflow: 'hidden' }}>
               {!typed && (
                 <>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4 }}>
@@ -143,11 +143,10 @@ export function ShopScreen() {
               ))}
             </View>
           )}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 22, paddingRight: 12 }} style={{ borderBottomWidth: 1, borderBottomColor: c.border }}>
             {['', ...categories].map((cat) => (
-              <Pressable key={cat || 'all'} onPress={() => setCategory(cat)}
-                style={{ paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999, borderWidth: 1, borderColor: category === cat ? c.primary : c.border, backgroundColor: category === cat ? c.primary : c.surface }}>
-                <Text style={{ color: category === cat ? c.primaryForeground : c.foreground, textTransform: 'capitalize' }}>{cat || 'All'}</Text>
+              <Pressable key={cat || 'all'} onPress={() => setCategory(cat)} style={{ paddingBottom: 10, borderBottomWidth: 2, borderBottomColor: category === cat ? c.foreground : 'transparent', marginBottom: -1 }}>
+                <Text style={{ color: category === cat ? c.foreground : c.muted, fontWeight: category === cat ? '600' : '400', textTransform: 'capitalize' }}>{cat || 'All'}</Text>
               </Pressable>
             ))}
           </ScrollView>
@@ -162,16 +161,15 @@ export function ShopScreen() {
         </View>
       }
       renderItem={({ item: p }) => (
-        <View style={{ flex: 1, backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, overflow: 'hidden' }}>
+        <View style={{ flex: 1 }}>
           <Pressable onPress={() => nav.navigate('Product', { slug: p.slug, name: p.name })}>
-            <Photo uri={p.imageUrl} style={{ width: '100%', aspectRatio: 4 / 5 }} />
-            <View style={{ padding: 10 }}>
-              <Text numberOfLines={2} style={{ color: c.foreground, fontWeight: '600' }}>{p.name}</Text>
-              <Text style={{ color: c.muted, marginTop: 2 }}>{formatMoney(p.priceCents, p.currency)}</Text>
-            </View>
+            <Photo uri={p.imageUrl} style={{ width: '100%', aspectRatio: 4 / 5, borderRadius: 6 }} />
+            <Text numberOfLines={2} style={{ color: c.foreground, fontWeight: '500', marginTop: 10, lineHeight: 20 }}>{p.name}</Text>
+            <Text style={{ color: c.foreground, marginTop: 2 }}>{formatMoney(p.priceCents, p.currency)}</Text>
+            <Text style={{ color: c.muted, fontSize: 12, marginTop: 1, textTransform: 'capitalize' }}>{p.category}</Text>
           </Pressable>
-          <View style={{ paddingHorizontal: 10, paddingBottom: 10 }}>
-            {p.stock === 0 ? <Text style={{ color: c.muted, textAlign: 'center', paddingVertical: 10 }}>Sold out</Text> : <Button label="Add to cart" onPress={() => add(p)} />}
+          <View style={{ marginTop: 10 }}>
+            {p.stock === 0 ? <Text style={{ color: c.muted, textAlign: 'center', paddingVertical: 10, borderWidth: 1, borderColor: c.border, borderRadius: 8 }}>Sold out</Text> : <Button label="Add to cart" variant="outline" onPress={() => add(p)} style={{ minHeight: 40 }} />}
           </View>
         </View>
       )}

@@ -23,13 +23,13 @@ export default async function AdminProductsPage() {
       <ProductForm />
       <ul className="space-y-3">
         {products.map((p) => (
-          <li key={p.id} className="flex gap-4 rounded-2xl border border-border bg-surface p-4">
+          <li key={p.id} className="flex gap-4 rounded-lg border border-border bg-surface p-4">
             <ProductImage name={p.name} imageUrl={p.imageUrl} className="size-20 shrink-0 rounded-xl" />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
                 <Link href={`/products/${p.slug}`} className="font-medium hover:underline">{p.name}</Link>
                 {!p.active && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-xs">Hidden</span>}
-                {p.stock === 0 && <span className="rounded-full bg-ink px-2 py-0.5 text-xs text-ink-foreground">Sold out</span>}
+                {p.stock === 0 && <span className="rounded-md bg-ink px-2 py-0.5 text-xs text-ink-foreground">Sold out</span>}
               </div>
               <p className="text-sm text-muted-foreground">{formatMoney(p.priceCents, p.currency)}</p>
               <div className="mt-2"><ProductAdminRow id={p.id} stock={p.stock} active={p.active} hasUpload={p.hasUploadedImage} /></div>

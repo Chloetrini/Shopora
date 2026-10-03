@@ -36,10 +36,10 @@ export function UserMenu({ user }: { user: PublicUser | null }) {
   if (!user) {
     return (
       <div className="flex items-center gap-2">
-        <Link href="/login" className="hidden h-10 items-center rounded-full px-4 text-sm font-medium hover:bg-surface sm:inline-flex">Log in</Link>
-        <Link href="/register" className="hidden h-10 items-center rounded-full bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90 sm:inline-flex">Sign up</Link>
+        <Link href="/login" className="hidden h-9 items-center rounded-md px-3 text-sm text-muted-foreground hover:text-foreground sm:inline-flex">Log in</Link>
+        <Link href="/register" className="hidden h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 sm:inline-flex">Sign up</Link>
         {/* One compact button on phones; Sign up is one tap away on the login page. */}
-        <Link href="/login" className="inline-flex h-10 items-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 sm:hidden">Log in</Link>
+        <Link href="/login" className="inline-flex h-9 items-center rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground hover:opacity-90 sm:hidden">Log in</Link>
       </div>
     )
   }
@@ -52,7 +52,7 @@ export function UserMenu({ user }: { user: PublicUser | null }) {
         <UserAvatar user={user} />
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-12 z-40 w-60 overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
+        <div role="menu" className="absolute right-0 top-12 z-40 w-60 overflow-hidden rounded-lg border border-border bg-surface shadow-xl">
           <div className="border-b border-border px-4 py-3">
             <p className="truncate text-sm font-semibold">{user.fullName}</p>
             <p className="truncate text-xs text-muted-foreground">{user.email}</p>

@@ -10,6 +10,7 @@ import { API_URL } from '../config'
 import { useAuth } from '../auth'
 import type { RootStack } from '../navigation'
 import { useTheme } from '../theme'
+import { AppearanceRow } from '../appearance'
 import { Avatar, Button, GoogleLogo, Center, Field, Note, VerifyNotice } from '../ui'
 
 type Nav = NativeStackNavigationProp<RootStack>
@@ -26,6 +27,7 @@ export function AccountScreen() {
         <View style={{ gap: 10, width: '100%', maxWidth: 320 }}>
           <Button label="Log in" onPress={() => nav.navigate('Login', { mode: 'login' })} />
           <Button label="Create an account" variant="outline" onPress={() => nav.navigate('Login', { mode: 'register' })} />
+          <View style={{ marginTop: 12 }}><AppearanceRow /></View>
         </View>
       </Center>
     )
@@ -33,7 +35,7 @@ export function AccountScreen() {
   return (
     <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={{ padding: 16, gap: 12 }}>
       <VerifyNotice />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 16 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 16 }}>
         <Avatar name={user.fullName} uri={user.avatarUrl} size={56} />
         <View style={{ flex: 1 }}>
           <Text style={{ color: c.foreground, fontSize: 20, fontWeight: '700' }}>{user.fullName}</Text>
@@ -41,6 +43,7 @@ export function AccountScreen() {
         </View>
       </View>
       <Button label="Edit profile" onPress={() => nav.navigate('Profile')} />
+      <AppearanceRow />
       <AppVersion />
       <Button label="Open the website" variant="outline" onPress={async () => { if (!(await openSignedIn('/'))) await WebBrowser.openBrowserAsync(API_URL) }} />
       <Button label="Log out" variant="outline" onPress={logout} />

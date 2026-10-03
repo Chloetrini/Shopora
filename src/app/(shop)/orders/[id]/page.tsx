@@ -54,23 +54,23 @@ export default async function OrderPage({
         )}
 
         <h2 className="font-display mt-10 text-xl font-semibold">Tracking</h2>
-        <div className="mt-4 rounded-2xl border border-border bg-surface p-5">
+        <div className="mt-4 rounded-lg border border-border bg-surface p-5">
           <OrderTimeline status={order.status} events={order.events} />
         </div>
 
         {!user && (
-          <div className="mt-8 rounded-2xl border border-border bg-primary-soft p-5">
+          <div className="mt-8 rounded-lg border border-border bg-primary-soft p-5">
             <p className="font-medium">Keep all your orders in one place</p>
             <p className="mt-1 text-sm text-muted-foreground">Sign in with Google to see this and every order you place with {order.email}. You can always come back to this page using the link in your email.</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Link href={`/login?next=${encodeURIComponent(`/orders/${order.id}`)}`} className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Log in</Link>
-              <Link href={`/register?next=${encodeURIComponent('/orders')}`} className="rounded-full border border-border px-4 py-2 text-sm font-medium">Create an account</Link>
+              <Link href={`/login?next=${encodeURIComponent(`/orders/${order.id}`)}`} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">Log in</Link>
+              <Link href={`/register?next=${encodeURIComponent('/orders')}`} className="rounded-md border border-border px-4 py-2 text-sm font-medium">Create an account</Link>
             </div>
           </div>
         )}
       </div>
 
-      <aside className="h-fit rounded-2xl border border-border bg-surface p-5">
+      <aside className="h-fit rounded-lg border border-border bg-surface p-5">
         <h2 className="font-semibold">Summary</h2>
         <ul className="mt-3 divide-y divide-border text-sm">
           {order.items.map((i) => (

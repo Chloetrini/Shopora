@@ -150,6 +150,12 @@ A user logs in on both; adding to the cart on the web shows up on the phone almo
   verified the address): they are logged in at once, get the welcome email and the welcome message (website banner / app alert; the app learns `created` from the one-time code).
   Registering an email whose account **never confirmed** takes that account over (new name and password, old sessions ended), because its creator never proved the address; a confirmed or
   Google-linked account is never touched (409). Tests: `signup-flow.test.ts`.
+- **Design pass (website and app share it).** Calmer and less "template": Inter for everything (the serif Fraunces is gone; `.font-display` is Inter 600 with -0.025em tracking), warmer
+  neutrals (`--background #fbfaf8`, `--border #e6e3de`, `--foreground #1b1f23`, `--muted-foreground #6b7178`; dark tokens unchanged), **small radii** (buttons/inputs `rounded-md`, boxes `rounded-lg`; `rounded-full`
+  only for avatars, badges and progress bars; the app uses 8 px), no gradients and no hover lift. Header: letter-spaced SHOPORA wordmark, ghost icon buttons. Hero: headline plus one large product photo, no
+  box. A plain three-item assurance strip replaced the icon cards. Category filters are **underline text tabs**. Product cards are **flat**: photo, then name and price on one line (stacked on phones),
+  category in small type, a quiet outlined "Add to cart" (no description, no border, no shadow). Footer is light with thin dividers. In the app: same palette, flat product grid, text tabs, 8 px radii.
+  An **Appearance** row (Auto, Light, Dark) on the Account screen saves the choice in SecureStore and applies it with `Appearance.setColorScheme` (Auto = `'unspecified'`, follow the phone).
 - **Search as you type** (website and app): suggestions drop down while you type (best match first: a name that starts with what you typed, then a word that starts with it,
   then anywhere in the name, then description/category; accents and capitals ignored; every word of the query must match), with the matching part in bold and the price, plus an
   "All in <category>" row. Arrow keys / Enter / Esc on the website (`role="combobox"`). The product list below follows the typing: the website updates the URL (`?q=`) 250 ms after the last key,

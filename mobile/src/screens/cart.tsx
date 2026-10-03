@@ -32,8 +32,8 @@ export function CartScreen() {
         keyExtractor={(i) => i.productId}
         contentContainerStyle={{ padding: 12, gap: 10 }}
         renderItem={({ item: i }) => (
-          <View style={{ flexDirection: 'row', gap: 12, backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 10, alignItems: 'center' }}>
-            <Photo uri={i.imageUrl} style={{ width: 64, height: 64, borderRadius: 10 }} />
+          <View style={{ flexDirection: 'row', gap: 12, backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 10, alignItems: 'center' }}>
+            <Photo uri={i.imageUrl} style={{ width: 64, height: 64, borderRadius: 6 }} />
             <View style={{ flex: 1 }}>
               <Text numberOfLines={2} style={{ color: c.foreground, fontWeight: '600' }}>{i.name}</Text>
               <Text style={{ color: c.muted }}>{formatMoney(i.priceCents, i.currency)} each</Text>

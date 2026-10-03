@@ -38,7 +38,7 @@ export function OrdersScreen() {
       keyExtractor={(o) => o.id}
       contentContainerStyle={{ padding: 12, gap: 10 }}
       renderItem={({ item: o }) => (
-        <Pressable onPress={() => nav.navigate('Order', { id: o.id })} style={{ backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 14, gap: 4 }}>
+        <Pressable onPress={() => nav.navigate('Order', { id: o.id })} style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 14, gap: 4 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={{ color: c.foreground, fontWeight: '600' }}>Order {o.id.slice(0, 8)}</Text>
             <Text style={{ color: c.foreground, fontWeight: '600' }}>{formatMoney(o.totalCents, o.currency)}</Text>
@@ -125,7 +125,7 @@ export function OrderScreen({ route }: { route: { params: RootStack['Order'] } }
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   const c = useTheme()
   return (
-    <View style={{ backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>
+    <View style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 14, gap: 8 }}>
       <Text style={{ color: c.foreground, fontWeight: '700' }}>{title}</Text>
       {children}
     </View>

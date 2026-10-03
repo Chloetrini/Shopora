@@ -27,7 +27,7 @@ export function AdminScreen() {
       </Text>
       <View style={{ flexDirection: 'row', gap: 8, padding: 12 }}>
         {(['orders', 'products', 'codes'] as Tab[]).map((t) => (
-          <Pressable key={t} onPress={() => setTab(t)} style={{ flex: 1, paddingVertical: 9, borderRadius: 999, alignItems: 'center', borderWidth: 1, borderColor: tab === t ? c.primary : c.border, backgroundColor: tab === t ? c.primary : c.surface }}>
+          <Pressable key={t} onPress={() => setTab(t)} style={{ flex: 1, paddingVertical: 9, borderRadius: 8, alignItems: 'center', borderWidth: 1, borderColor: tab === t ? c.primary : c.border, backgroundColor: tab === t ? c.primary : c.surface }}>
             <Text style={{ color: tab === t ? c.primaryForeground : c.foreground, fontWeight: '600', textTransform: 'capitalize' }}>{t === 'codes' ? 'Discounts' : t}</Text>
           </Pressable>
         ))}
@@ -55,7 +55,7 @@ function useAdminList<T>(path: string) {
 
 function Card({ children }: { children: React.ReactNode }) {
   const c = useTheme()
-  return <View style={{ backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>{children}</View>
+  return <View style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 12, gap: 8 }}>{children}</View>
 }
 
 function AdminOrders() {
@@ -180,7 +180,7 @@ function AdminProducts() {
           <Text style={{ color: c.foreground, fontSize: 13 }}>Category</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {CATEGORIES.map((cat) => (
-              <Pressable key={cat} onPress={() => setF({ ...f, category: cat })} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: f.category === cat ? c.primary : c.border, backgroundColor: f.category === cat ? c.primary : c.surface }}>
+              <Pressable key={cat} onPress={() => setF({ ...f, category: cat })} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: f.category === cat ? c.primary : c.border, backgroundColor: f.category === cat ? c.primary : c.surface }}>
                 <Text style={{ color: f.category === cat ? c.primaryForeground : c.foreground, textTransform: 'capitalize' }}>{cat}</Text>
               </Pressable>
             ))}
@@ -196,7 +196,7 @@ function AdminProducts() {
       {data.products.map((p) => (
         <Card key={p.id}>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Photo uri={p.imageUrl} style={{ width: 64, height: 64, borderRadius: 10 }} />
+            <Photo uri={p.imageUrl} style={{ width: 64, height: 64, borderRadius: 6 }} />
             <View style={{ flex: 1 }}>
               <Text style={{ color: c.foreground, fontWeight: '600' }}>{p.name}</Text>
               <Text style={{ color: c.muted }}>{formatMoney(p.priceCents, p.currency)}{p.active ? '' : ', hidden'}{p.stock === 0 ? ', sold out' : ''}</Text>

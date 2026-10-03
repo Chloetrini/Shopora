@@ -12,7 +12,7 @@ export function AdminTabs({ current }: { current: string }) {
     <nav aria-label="Admin" className="-mx-4 mb-6 flex gap-2 overflow-x-auto px-4">
       {TABS.map((t) => (
         <Link key={t.href} href={t.href} aria-current={t.href === current ? 'page' : undefined}
-          className={`shrink-0 rounded-full border px-4 py-1.5 text-sm ${t.href === current ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-surface hover:border-primary'}`}>
+          className={`shrink-0 rounded-md border px-4 py-1.5 text-sm ${t.href === current ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-surface hover:border-primary'}`}>
           {t.label}
         </Link>
       ))}

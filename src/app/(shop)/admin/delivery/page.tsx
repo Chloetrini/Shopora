@@ -21,7 +21,7 @@ export default async function AdminDeliveryPage() {
       <ZoneForm />
       <ul className="mt-6 space-y-3">
         {zones.map((z) => (
-          <li key={z.id} className="rounded-2xl border border-border bg-surface p-4">
+          <li key={z.id} className="rounded-lg border border-border bg-surface p-4">
             <p className="font-medium">{z.name} {!z.active && <span className="ml-2 rounded-full bg-primary-soft px-2 py-0.5 text-xs">Off</span>}</p>
             <p className="mb-2 text-sm text-muted-foreground">
               {z.country === '*' ? 'Everywhere else' : z.region ? `${titleCase(z.region)}, ${titleCase(z.country)}` : `All of ${titleCase(z.country)} not matched above`}

@@ -61,11 +61,11 @@ export function AddressManager({ addresses }: { addresses: Address[] }) {
     <div className="grid gap-8 lg:grid-cols-2">
       <div>
         {addresses.length === 0 ? (
-          <p className="rounded-2xl border border-border bg-surface p-6 text-muted-foreground">No saved addresses yet. Add one and checkout will fill it in for you.</p>
+          <p className="rounded-lg border border-border bg-surface p-6 text-muted-foreground">No saved addresses yet. Add one and checkout will fill it in for you.</p>
         ) : (
           <ul className="space-y-3">
             {addresses.map((a) => (
-              <li key={a.id} className="rounded-2xl border border-border bg-surface p-4">
+              <li key={a.id} className="rounded-lg border border-border bg-surface p-4">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium">{a.label || a.fullName}</p>
                   {a.isDefault && <span className="rounded-full bg-primary-soft px-2.5 py-0.5 text-xs font-medium">Default</span>}
@@ -84,7 +84,7 @@ export function AddressManager({ addresses }: { addresses: Address[] }) {
         {formError && addresses.length > 0 && <p role="alert" className="mt-3 text-sm text-red-600 dark:text-red-400">{formError}</p>}
       </div>
 
-      <form onSubmit={onSubmit} noValidate className="space-y-3 rounded-2xl border border-border bg-surface p-5">
+      <form onSubmit={onSubmit} noValidate className="space-y-3 rounded-lg border border-border bg-surface p-5">
         <h2 className="font-semibold">Add an address</h2>
         {FIELDS.map((f) => (
           <div key={f.name}>
@@ -95,7 +95,7 @@ export function AddressManager({ addresses }: { addresses: Address[] }) {
         ))}
         <label className="flex items-center gap-2 text-sm"><input type="checkbox" name="isDefault" /> Make this my default address</label>
         {formError && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{formError}</p>}
-        <button type="submit" disabled={busy} className="rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-60">{busy ? 'Saving…' : 'Save address'}</button>
+        <button type="submit" disabled={busy} className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground disabled:opacity-60">{busy ? 'Saving…' : 'Save address'}</button>
       </form>
     </div>
   )

@@ -93,7 +93,7 @@ export function CheckoutScreen() {
         <Button label="Apply" variant="outline" onPress={applyCode} disabled={!code.trim()} style={{ marginBottom: 12 }} />
       </View>
 
-      <View style={{ backgroundColor: c.surface, borderRadius: 14, borderWidth: 1, borderColor: c.border, padding: 14, gap: 6, marginVertical: 8 }}>
+      <View style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 14, gap: 6, marginVertical: 8 }}>
         <Row label="Subtotal" value={formatMoney(subtotal, currency)} />
         {applied && <Row label={`Code ${applied.code}`} value={`−${formatMoney(off, currency)}`} />}
         <Text style={{ color: c.muted, fontSize: 12 }}>Delivery to your location is added when the order is placed; the exact total is shown on the next screen.</Text>

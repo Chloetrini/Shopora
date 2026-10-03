@@ -47,7 +47,7 @@ export function AdminStatusForm({ id, status }: { id: string; status: OrderStatu
 
   const mailButton = isPaidStatus(status) && (
     <div className="mt-2">
-      <button type="button" onClick={resend} disabled={busy} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">Send confirmation email</button>
+      <button type="button" onClick={resend} disabled={busy} className="rounded-md border border-border px-4 py-1.5 text-sm hover:border-primary disabled:opacity-60">Send confirmation email</button>
       {mail && <p role="status" className={`mt-1 text-sm ${mail.ok ? '' : 'text-red-600 dark:text-red-400'}`}>{mail.text}</p>}
     </div>
   )
@@ -69,7 +69,7 @@ export function AdminStatusForm({ id, status }: { id: string; status: OrderStatu
       </select>
       <label className="sr-only" htmlFor={`n-${id}`}>Note for the buyer (optional)</label>
       <input id={`n-${id}`} name="note" maxLength={300} placeholder="Note, e.g. courier and tracking number" className="min-w-48 flex-1 rounded-lg border border-border bg-background px-2 py-1.5 text-sm" />
-      <button type="submit" disabled={busy} className="rounded-full bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-60">{busy ? 'Saving…' : 'Update'}</button>
+      <button type="submit" disabled={busy} className="rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground disabled:opacity-60">{busy ? 'Saving…' : 'Update'}</button>
       {error && <p role="alert" className="w-full text-sm text-red-600 dark:text-red-400">{error}</p>}
     </form>
     {mailButton}

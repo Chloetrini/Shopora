@@ -9,7 +9,7 @@ export default function Loading() {
       </div>
       <ul className="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
         {Array.from({ length: 8 }, (_, i) => (
-          <li key={i} className="animate-pulse overflow-hidden rounded-2xl bg-surface">
+          <li key={i} className="animate-pulse overflow-hidden rounded-lg bg-surface">
             <div className="aspect-[4/5] bg-border/70" />
             <div className="space-y-2 p-4">
               <div className="h-3 w-1/3 rounded bg-border/50" />

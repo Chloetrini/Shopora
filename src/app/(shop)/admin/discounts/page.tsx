@@ -26,7 +26,7 @@ export default async function AdminDiscountsPage() {
           const expired = c.expiresAt && new Date(c.expiresAt) < new Date()
           const usedUp = c.maxUses != null && c.usedCount >= c.maxUses
           return (
-            <li key={c.code} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4">
+            <li key={c.code} className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface p-4">
               <div>
                 <p className="font-mono font-semibold">{c.code}</p>
                 <p className="text-sm text-muted-foreground">

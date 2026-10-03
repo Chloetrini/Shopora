@@ -27,11 +27,11 @@ export default async function AdminOrdersPage() {
       ) : (
         <ul className="mt-6 space-y-3">
           {orders.map((o) => (
-            <li key={o.id} className="rounded-2xl border border-border bg-surface p-4">
+            <li key={o.id} className="rounded-lg border border-border bg-surface p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Link href={`/orders/${o.id}`} className="font-medium hover:underline">Order {o.id.slice(0, 8)}</Link>
                 <span className="flex items-center gap-2">
-                  {o.refundNeeded && <span className="rounded-full bg-ink px-3 py-1 text-xs font-medium text-ink-foreground">Paid after cancel: refund needed</span>}
+                  {o.refundNeeded && <span className="rounded-md bg-ink px-3 py-1 text-xs font-medium text-ink-foreground">Paid after cancel: refund needed</span>}
                   <span className="rounded-full bg-primary-soft px-3 py-1 text-xs font-medium">{STATUS_LABEL[o.status]}</span>
                 </span>
               </div>

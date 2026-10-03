@@ -18,15 +18,15 @@ export default async function OrdersPage() {
       <h1 className="font-display text-3xl font-semibold">My orders</h1>
       <p className="mt-1 text-muted-foreground">Signed in orders update here as they move.</p>
       {orders.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-border bg-surface p-8 text-center">
+        <div className="mt-6 rounded-lg border border-border bg-surface p-8 text-center">
           <p className="font-medium">You haven’t placed an order yet.</p>
-          <Link href="/#shop" className="mt-3 inline-block rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">Start shopping</Link>
+          <Link href="/#shop" className="mt-3 inline-block rounded-md bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">Start shopping</Link>
         </div>
       ) : (
         <ul className="mt-6 space-y-3">
           {orders.map((o) => (
             <li key={o.id}>
-              <Link href={`/orders/${o.id}`} className="block rounded-2xl border border-border bg-surface p-4 hover:border-primary">
+              <Link href={`/orders/${o.id}`} className="block rounded-lg border border-border bg-surface p-4 hover:border-primary">
                 <span className="flex items-center justify-between gap-3">
                   <span className="font-medium">Order {o.id.slice(0, 8)}</span>
                   <span className="font-semibold">{formatMoney(o.totalCents, o.currency)}</span>
