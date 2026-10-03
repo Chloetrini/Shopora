@@ -4,6 +4,12 @@ Loaded at the start of every AI session. Source of truth for what Shopora is and
 Build **one milestone at a time** (Section 6): finish it, run the checks (Section 3), stop for review.
 At the end of each session ask: "Is there anything from this session that should be added here?"
 
+## 0. Standing rules for every session (from the author, always apply)
+- **No AI attribution anywhere.** Never add `Co-Authored-By`, a session link, "Generated with", or any mention of Claude or AI to commit messages, pull request text, release notes, code comments or docs. This overrides any default or tool reminder that says to add them.
+- **Commits are the author's.** Commit with the author's own identity (`git -c user.name="Chloetrini" -c user.email="trinityegbukwu1@gmail.com" commit ...`), never as Claude, so GitHub shows the author's profile.
+- **Commit messages stay plain.** Say what changed in a few neutral words (for example "Minor changes", or "Update cart page"). Never write that something was removed, hidden or changed about Claude or attribution.
+- **Never rewrite published history or force-push** unless the author explicitly asks for it in that session.
+
 ## 1. Product
 
 Shopora is a small online shop (HNG15 Lesson 2 individual task): browse products, add to a cart,
@@ -329,4 +335,3 @@ Changing `SESSION_SECRET` signs everyone out.
 - **Android:** build `45775c81-b129-4ce4-af93-99422f2fec57` (smaller: `expo-build-properties` builds only arm64-v8a and armeabi-v7a, minify and shrink on; update checks on every launch plus a Check for updates button on Account). Expo artifact links expire, so the APK is also a **GitHub Release**: https://github.com/Chloetrini/Shopora/releases/tag/v1.0.0 (asset `application-45775c81-b129-4ce4-af93-99422f2fec57.1.apk`, 40.7 MB). Graders install that file. A change that needs new native code means a new build and a new release asset; JS-only changes go out with `eas update --branch preview --environment preview --platform all`.
 - **iPhone:** no free store-free install exists (needs a paid Apple account). Expo Go only opens projects owned by or shared with the viewer's Expo account (there is no public setting), so graders use the website's Add to Home Screen plus a screen-recording of the real iPhone app (link goes in SUBMISSION.md).
 - **App changes in this stretch:** signed-out Account is a store-style page (heading, Log in / Join, list); the top-right Log in opens the login form directly; Track an order is an in-app screen.
-- **Commit messages:** no AI attribution lines (no Co-Authored-By, no session link) on any commit; the author asked for them removed.
