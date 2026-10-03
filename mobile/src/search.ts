@@ -60,3 +60,44 @@ export function highlightParts(text: string, q: string): { text: string; match: 
     .filter((part) => part !== '')
     .map((part) => ({ text: part, match: words.some((w) => part.toLowerCase() === w.toLowerCase()) }))
 }
+
+/** The number of single-letter changes between two words (so "bagg" is 1 away from "bag"). */
+export function levenshtein(a: string, b: string): number {
+  if (a === b) return 0
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i)
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i]
+    for (let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1))
+    prev = cur
+  }
+  return prev[b.length]
+}
+
+/**
+ * For a search that found nothing: the closest word from the shop's own product names and categories, when the
+ * query looks like a typo of it ("leter" gives "Leather"). Null if nothing is close enough.
+ */
+export function didYouMean(products: Searchable[], q: string): string | null {
+  const words = tokens(q)
+  const last = words[words.length - 1]
+  if (!last || last.length < 3) return null
+  const max = last.length >= 6 ? 2 : 1
+  let best: { word: string; d: number } | null = null
+  for (const p of products) {
+    for (const raw of `${p.name} ${p.category}`.split(/[^\p{L}\p{N}]+/u).filter(Boolean)) {
+      const w = fold(raw)
+      if (w.length < 3 || w === last) continue
+      const d = levenshtein(last, w)
+      if (d <= max && (!best || d < best.d)) best = { word: raw, d }
+    }
+  }
+  if (!best) return null
+  return [...q.trim().split(/\s+/).slice(0, -1), best.word.charAt(0).toUpperCase() + best.word.slice(1).toLowerCase()].join(' ')
+}
+
+/** Adds a search to the front of the recent list: trimmed, no duplicates (any capitals), newest first, at most `max`. */
+export function pushRecent(list: string[], term: string, max = 5): string[] {
+  const t = term.trim().slice(0, 60)
+  if (t.length < 2) return list
+  return [t, ...list.filter((x) => x.toLowerCase() !== t.toLowerCase())].slice(0, max)
+}

@@ -3,6 +3,7 @@ import { PackageCheck, ShieldCheck, Mail, LogIn } from 'lucide-react'
 import { ProductCard } from '@/components/shop/product-card'
 import { SearchBox } from '@/components/shop/search-box'
 import { Hero } from '@/components/shop/hero'
+import { didYouMean } from '@/lib/search'
 import { applyCatalogFilters, catalogHref, CATEGORIES, parseCatalogQuery, SORTS } from '@/lib/catalog'
 import { getSessionUser } from '@/server/current-user'
 import { ratingSummaries, wishlistProductIds } from '@/server/db/features'
@@ -28,6 +29,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   ])
   const products = applyCatalogFilters(all, f)
   const featured = all.slice(0, 3)
+  const fix = products.length === 0 && f.search ? didYouMean(all, f.search) : null
   const filtered = !!(f.category || f.search)
 
   return (
@@ -52,7 +54,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-display text-3xl font-semibold">{f.category ? CATEGORIES.find((c) => c.slug === f.category)?.label : 'Shop all'}</h2>
           <SearchBox
-            products={all.map((p) => ({ slug: p.slug, name: p.name, priceCents: p.priceCents, currency: p.currency, category: p.category }))}
+            products={all.map((p) => ({ slug: p.slug, name: p.name, priceCents: p.priceCents, currency: p.currency, category: p.category, imageUrl: p.imageUrl }))}
             categories={CATEGORIES.map((c) => ({ slug: c.slug, label: c.label }))}
             initialQuery={f.search} category={f.category} sort={f.sort}
           />
@@ -81,9 +83,17 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
         {products.length === 0 ? (
           <div className="mt-10 rounded-2xl border border-border bg-surface p-10 text-center">
-            <p className="font-display text-xl font-semibold">Nothing matches that</p>
-            <p className="mt-1 text-muted-foreground">Try another word or category.</p>
-            <Link href="/#shop" className="mt-4 inline-block rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">Show everything</Link>
+            <p className="font-display text-xl font-semibold">{f.search ? `Nothing matches “${f.search}”` : 'Nothing matches that'}</p>
+            {fix && (
+              <p className="mt-2">Did you mean <Link href={catalogHref({ category: f.category, sort: f.sort, search: fix })} scroll={false} className="font-semibold text-primary underline">{fix}</Link>?</p>
+            )}
+            <p className="mt-2 text-muted-foreground">Check the spelling, try fewer words, or browse a category:</p>
+            <p className="mt-3 flex flex-wrap justify-center gap-2">
+              {CATEGORIES.slice(0, 5).map((c) => (
+                <Link key={c.slug} href={catalogHref({ category: c.slug, sort: f.sort })} scroll={false} className="rounded-full border border-border px-4 py-1.5 text-sm hover:border-primary">{c.label}</Link>
+              ))}
+            </p>
+            <Link href="/#shop" className="mt-5 inline-block rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground">Show everything</Link>
           </div>
         ) : (
           <ul className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">

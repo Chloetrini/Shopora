@@ -1,3 +1,5 @@
+import { Ionicons } from '@expo/vector-icons'
+import * as SecureStore from 'expo-secure-store'
 import { useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -7,12 +9,14 @@ import { useAuth } from '../auth'
 import { useCart } from '../cart'
 import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
-import { highlightParts, matchesQuery, suggest, suggestCategories } from '../search'
+import { didYouMean, highlightParts, matchesQuery, pushRecent, suggest, suggestCategories } from '../search'
 import { useTheme } from '../theme'
 import type { Product } from '../types'
 import { Button, Center, Note, Photo, VerifyNotice } from '../ui'
 
 type Nav = NativeStackNavigationProp<RootStack>
+
+const RECENT_KEY = 'shopora_recent_searches'
 
 /** Adds to the cart, or sends a signed-out visitor to log in first (the cart is tied to the account). */
 export function useAddToCart() {
@@ -35,6 +39,21 @@ export function ShopScreen() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
   const [focused, setFocused] = useState(false)
+  // The last few searches, kept on the phone (SecureStore is already part of the app, so no new native code).
+  const [recent, setRecent] = useState<string[]>([])
+  useEffect(() => {
+    SecureStore.getItemAsync(RECENT_KEY).then((v) => {
+      try {
+        const list = JSON.parse(v ?? '[]')
+        if (Array.isArray(list)) setRecent(list.filter((x): x is string => typeof x === 'string').slice(0, 5))
+      } catch { /* ignore a damaged value */ }
+    }).catch(() => {})
+  }, [])
+  const remember = (term: string) => {
+    const next = pushRecent(recent, term)
+    setRecent(next)
+    SecureStore.setItemAsync(RECENT_KEY, JSON.stringify(next)).catch(() => {})
+  }
 
   const load = useCallback(async () => {
     try {
@@ -52,7 +71,9 @@ export function ShopScreen() {
   // The suggestion card under the box: best matches first, and a matching category.
   const hits = useMemo(() => suggest(products ?? [], search, 5), [products, search])
   const catHits = useMemo(() => suggestCategories(categories.map((c) => ({ label: c })), search, 1), [categories, search])
-  const showSuggestions = focused && search.trim().length > 0
+  const typed = search.trim().length > 0
+  const showSuggestions = focused && (typed || recent.length > 0)
+  const fix = useMemo(() => (typed && hits.length === 0 && catHits.length === 0 ? didYouMean(products ?? [], search) : null), [typed, hits.length, catHits.length, products, search])
 
   if (!products) {
     return <Center>{error ? <><Note text={error} error /><Button label="Try again" onPress={load} /></> : <Note text="Loading the shop…" />}</Center>
@@ -76,6 +97,7 @@ export function ShopScreen() {
             onFocus={() => setFocused(true)}
             onBlur={() => setTimeout(() => setFocused(false), 150)}
             returnKeyType="search"
+            onSubmitEditing={() => { if (search.trim()) remember(search) }}
             autoCorrect={false}
             placeholder="Search the shop"
             placeholderTextColor={c.muted}
@@ -83,17 +105,38 @@ export function ShopScreen() {
           />
           {showSuggestions && (
             <View style={{ backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, borderRadius: 14, overflow: 'hidden' }}>
-              {hits.length === 0 && catHits.length === 0 && <Text style={{ color: c.muted, padding: 12 }}>No suggestions for “{search.trim()}”.</Text>}
-              {hits.map((p) => (
-                <Pressable key={p.id} onPress={() => { setFocused(false); nav.navigate('Product', { slug: p.slug, name: p.name }) }}
-                  style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: c.border }}>
+              {!typed && (
+                <>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 14, paddingTop: 10, paddingBottom: 4 }}>
+                    <Text style={{ color: c.muted, fontSize: 12 }}>Recent searches</Text>
+                    <Text onPress={() => { setRecent([]); SecureStore.deleteItemAsync(RECENT_KEY).catch(() => {}) }} style={{ color: c.muted, fontSize: 12, textDecorationLine: 'underline' }}>Clear</Text>
+                  </View>
+                  {recent.map((term) => (
+                    <Pressable key={term} onPress={() => setSearch(term)} style={{ flexDirection: 'row', gap: 10, alignItems: 'center', paddingHorizontal: 14, paddingVertical: 11 }}>
+                      <Ionicons name="time-outline" size={16} color={c.muted} />
+                      <Text style={{ color: c.muted }}>{term}</Text>
+                    </Pressable>
+                  ))}
+                </>
+              )}
+              {typed && hits.length === 0 && catHits.length === 0 && (
+                <View style={{ padding: 14, gap: 8 }}>
+                  <Text style={{ color: c.muted }}>No products match “{search.trim()}”.</Text>
+                  {fix ? <Text style={{ color: c.muted }}>Did you mean <Text onPress={() => setSearch(fix)} style={{ color: c.primary, fontWeight: '700' }}>{fix}</Text>?</Text> : null}
+                  <Text style={{ color: c.muted }}>Or browse a category below.</Text>
+                </View>
+              )}
+              {typed && hits.map((p) => (
+                <Pressable key={p.id} onPress={() => { remember(p.name); setFocused(false); nav.navigate('Product', { slug: p.slug, name: p.name }) }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 9, borderBottomWidth: 1, borderBottomColor: c.border }}>
+                  <Photo uri={p.imageUrl} style={{ width: 36, height: 36, borderRadius: 8 }} />
                   <Text numberOfLines={1} style={{ color: c.muted, flex: 1 }}>
                     {highlightParts(p.name, search).map((part, i) => <Text key={i} style={part.match ? { color: c.foreground, fontWeight: '700' } : undefined}>{part.text}</Text>)}
                   </Text>
                   <Text style={{ color: c.muted, fontSize: 12 }}>{formatMoney(p.priceCents, p.currency)}</Text>
                 </Pressable>
               ))}
-              {catHits.map((cat) => (
+              {typed && catHits.map((cat) => (
                 <Pressable key={cat.label} onPress={() => { setCategory(cat.label); setSearch(''); setFocused(false) }} style={{ paddingHorizontal: 14, paddingVertical: 11 }}>
                   <Text style={{ color: c.muted, textTransform: 'capitalize' }}>All in <Text style={{ color: c.foreground, fontWeight: '700' }}>{cat.label}</Text></Text>
                 </Pressable>
@@ -110,7 +153,14 @@ export function ShopScreen() {
           </ScrollView>
         </View>
       }
-      ListEmptyComponent={<Note text="Nothing matches that search." />}
+      ListEmptyComponent={
+        <View style={{ alignItems: 'center', gap: 6, padding: 20 }}>
+          <Text style={{ color: c.foreground, fontWeight: '700', fontSize: 16 }}>{search.trim() ? `Nothing matches “${search.trim()}”` : 'Nothing here yet'}</Text>
+          {fix ? <Text style={{ color: c.muted }}>Did you mean <Text onPress={() => setSearch(fix)} style={{ color: c.primary, fontWeight: '700' }}>{fix}</Text>?</Text> : null}
+          <Text style={{ color: c.muted, textAlign: 'center' }}>Check the spelling, try fewer words, or pick a category above.</Text>
+          <Button label="Show everything" variant="outline" onPress={() => { setSearch(''); setCategory('') }} style={{ marginTop: 6 }} />
+        </View>
+      }
       renderItem={({ item: p }) => (
         <View style={{ flex: 1, backgroundColor: c.surface, borderRadius: 16, borderWidth: 1, borderColor: c.border, overflow: 'hidden' }}>
           <Pressable onPress={() => nav.navigate('Product', { slug: p.slug, name: p.name })}>

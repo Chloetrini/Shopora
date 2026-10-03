@@ -154,6 +154,8 @@ A user logs in on both; adding to the cart on the web shows up on the phone almo
   then anywhere in the name, then description/category; accents and capitals ignored; every word of the query must match), with the matching part in bold and the price, plus an
   "All in <category>" row. Arrow keys / Enter / Esc on the website (`role="combobox"`). The product list below follows the typing: the website updates the URL (`?q=`) 250 ms after the last key,
   the app filters letter by letter. The logic is one pure file, `src/lib/search.ts`, **copied byte for byte to `mobile/src/search.ts`** (a test fails if they differ; the app can't import from outside its folder).
+  Extras: **recent searches** (last 5, shown when the box is focused and empty, with Clear; website `localStorage`, app SecureStore, so no new native code), a **small photo** in each suggestion,
+  and a **no-results** helper: "Did you mean <word>?" (closest word from the shop's own names and categories, `didYouMean`) plus category buttons, also on the empty product list.
   Suggestions are matched in the browser/phone from the product list already loaded, so there is no extra API call. Tests: `search.test.ts`.
 - **Milestone 12 ✅ Profile** (website `/profile`, app Account → Edit profile): photo (centre-cropped to 512 px JPEG in the browser/phone, stored on the user row
   (`avatar_b64`, `avatar_type`, `avatar_updated_at`), served only to its owner from `GET /api/users/me/avatar?v=…`, type decided from the bytes, ≤ 1.5 MB), full name, phone

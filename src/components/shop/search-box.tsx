@@ -1,14 +1,32 @@
 'use client'
 
-import { Search } from 'lucide-react'
+import { Clock, Search } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { useDismiss } from '@/hooks/use-dismiss'
 import { catalogHref } from '@/lib/catalog'
 import { formatMoney } from '@/lib/money'
-import { highlightParts, suggest, suggestCategories } from '@/lib/search'
+import { didYouMean, highlightParts, pushRecent, suggest, suggestCategories } from '@/lib/search'
+import { ProductImage } from '@/components/shop/product-image'
 
-type Item = { slug: string; name: string; priceCents: number; currency: string; category: string }
+type Item = { slug: string; name: string; priceCents: number; currency: string; category: string; imageUrl: string | null }
+
+const RECENT_KEY = 'shopora-recent-searches'
+const readRecent = (): string[] => {
+  try {
+    const v = JSON.parse(localStorage.getItem(RECENT_KEY) ?? '[]')
+    return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, 5) : []
+  } catch {
+    return []
+  }
+}
+const writeRecent = (list: string[]) => {
+  try {
+    localStorage.setItem(RECENT_KEY, JSON.stringify(list))
+  } catch {
+    /* storage blocked: recents just aren't kept */
+  }
+}
 type Category = { slug: string; label: string }
 
 /** Bold the parts of `text` that match what was typed. */
@@ -33,6 +51,8 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
   const [q, setQ] = useState(initialQuery)
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
+  // The last few searches. Only shown after you interact, so the server and browser HTML always agree.
+  const [recent, setRecent] = useState<string[]>(() => (typeof window === 'undefined' ? [] : readRecent()))
   useDismiss(wrapRef, open, () => setOpen(false))
 
   const productHits = useMemo(() => suggest(products, q, 6), [products, q])
@@ -45,7 +65,15 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
     ],
     [productHits, categoryHits, sort],
   )
-  const showList = open && q.trim().length > 0
+  const typed = q.trim().length > 0
+  const showList = open && (typed || recent.length > 0)
+  const fix = useMemo(() => (typed && productHits.length === 0 && categoryHits.length === 0 ? didYouMean(products, q) : null), [typed, productHits.length, categoryHits.length, products, q])
+
+  function remember(term: string) {
+    const next = pushRecent(recent, term)
+    setRecent(next)
+    writeRecent(next)
+  }
 
   // The list below the box follows what has been typed, a moment after the last key.
   useEffect(() => {
@@ -54,7 +82,8 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
     return () => clearTimeout(t)
   }, [q, initialQuery, category, sort, router])
 
-  function go(href: string) {
+  function go(href: string, term?: string) {
+    if (term) remember(term)
     setOpen(false)
     router.push(href)
   }
@@ -69,7 +98,8 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
       setActive((i) => (rows.length === 0 ? -1 : i <= 0 ? rows.length - 1 : i - 1))
     } else if (e.key === 'Enter' && active >= 0 && rows[active]) {
       e.preventDefault()
-      go(rows[active].href)
+      const r = rows[active]
+      go(r.href, r.kind === 'product' ? r.p.name : undefined)
     } else if (e.key === 'Escape') {
       setOpen(false)
     }
@@ -77,7 +107,7 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
 
   return (
     <div ref={wrapRef} className="relative">
-      <form action="/" method="get" role="search" className="flex gap-2">
+      <form action="/" method="get" role="search" className="flex gap-2" onSubmit={() => { if (typed) remember(q) }}>
         {category && <input type="hidden" name="category" value={category} />}
         {sort !== 'featured' && <input type="hidden" name="sort" value={sort} />}
         <label htmlFor="q" className="sr-only">Search products</label>
@@ -98,19 +128,51 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
 
       {showList && (
         <ul id={listId} role="listbox" className="absolute right-0 top-12 z-40 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-border bg-surface shadow-xl">
-          {rows.length === 0 && <li className="px-4 py-3 text-sm text-muted-foreground">No suggestions. Press Enter to search for “{q.trim()}”.</li>}
-          {rows.map((r, i) => (
+          {!typed && (
+            <>
+              <li className="flex items-center justify-between px-4 pb-1 pt-3 text-xs text-muted-foreground">
+                <span>Recent searches</span>
+                <button type="button" onPointerDown={(e) => { e.preventDefault(); setRecent([]); writeRecent([]) }} className="underline hover:text-foreground">Clear</button>
+              </li>
+              {recent.map((term) => (
+                <li key={term} role="option" aria-selected={false}
+                  onPointerDown={(e) => { e.preventDefault(); setQ(term); setActive(-1) }}
+                  className="flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:bg-primary-soft">
+                  <Clock className="size-4 shrink-0" aria-hidden /> <span className="truncate">{term}</span>
+                </li>
+              ))}
+            </>
+          )}
+          {typed && rows.length === 0 && (
+            <li className="space-y-2 px-4 py-3 text-sm text-muted-foreground">
+              <p>No products match “{q.trim()}”.</p>
+              {fix && (
+                <p>Did you mean{' '}
+                  <button type="button" onPointerDown={(e) => { e.preventDefault(); setQ(fix); setActive(-1) }} className="font-semibold text-primary underline">{fix}</button>?
+                </p>
+              )}
+              <p className="flex flex-wrap gap-1.5">
+                <span>Or browse:</span>
+                {categories.slice(0, 4).map((c) => (
+                  <button key={c.slug} type="button" onPointerDown={(e) => { e.preventDefault(); go(catalogHref({ category: c.slug, sort })) }}
+                    className="rounded-full border border-border px-2.5 py-0.5 text-xs hover:border-primary">{c.label}</button>
+                ))}
+              </p>
+            </li>
+          )}
+          {typed && rows.map((r, i) => (
             <li key={r.key} id={`${listId}-${i}`} role="option" aria-selected={i === active}
-              onPointerDown={(e) => { e.preventDefault(); go(r.href) }}
+              onPointerDown={(e) => { e.preventDefault(); go(r.href, r.kind === 'product' ? r.p.name : undefined) }}
               onMouseEnter={() => setActive(i)}
-              className={`flex cursor-pointer items-center justify-between gap-3 px-4 py-2.5 text-sm ${i === active ? 'bg-primary-soft' : ''}`}>
+              className={`flex cursor-pointer items-center gap-3 px-4 py-2 text-sm ${i === active ? 'bg-primary-soft' : ''}`}>
               {r.kind === 'product' ? (
                 <>
-                  <span className="min-w-0 truncate text-muted-foreground"><Marked text={r.p.name} q={q} /></span>
+                  <ProductImage name={r.p.name} imageUrl={r.p.imageUrl} className="size-9 shrink-0 rounded-md" />
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground"><Marked text={r.p.name} q={q} /></span>
                   <span className="shrink-0 text-xs text-muted-foreground">{formatMoney(r.p.priceCents, r.p.currency)}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">All in <strong className="font-semibold text-foreground">{r.c.label}</strong></span>
+                <span className="py-1 text-muted-foreground">All in <strong className="font-semibold text-foreground">{r.c.label}</strong></span>
               )}
             </li>
           ))}

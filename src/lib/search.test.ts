@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { fold, highlightParts, matchesQuery, scoreProduct, suggest, suggestCategories, tokens } from './search'
+import { didYouMean, fold, highlightParts, levenshtein, matchesQuery, pushRecent, scoreProduct, suggest, suggestCategories, tokens } from './search'
 
 const P = [
   { slug: 'leather-tote', name: 'Leather Tote Bag', description: 'A roomy everyday bag', category: 'bags' },
@@ -59,6 +59,36 @@ describe('highlighting', () => {
   it('is safe with regex characters', () => {
     expect(highlightParts('a (b) c', '(b')).toBeTruthy()
     expect(highlightParts('x', '[')[0].text).toBe('x')
+  })
+})
+
+describe('did you mean', () => {
+  it('measures single-letter changes', () => {
+    expect(levenshtein('bag', 'bag')).toBe(0)
+    expect(levenshtein('bagg', 'bag')).toBe(1)
+    expect(levenshtein('kitten', 'sitting')).toBe(3)
+  })
+  it('fixes a small typo using the shop\'s own words', () => {
+    expect(didYouMean(P, 'leathar')).toBe('Leather')
+    expect(didYouMean(P, 'tote lamb')).toBe('tote Lamp')
+    expect(didYouMean(P, 'bottel')).toBe('Bottle')
+  })
+  it('stays quiet for nonsense, short words and exact words', () => {
+    expect(didYouMean(P, 'zzzzzzz')).toBeNull()
+    expect(didYouMean(P, 'ab')).toBeNull()
+    expect(didYouMean(P, 'lamp')).toBeNull()
+  })
+})
+
+describe('recent searches', () => {
+  it('puts the newest first, with no duplicates', () => {
+    expect(pushRecent(['lamp', 'bag'], 'Bag')).toEqual(['Bag', 'lamp'])
+    expect(pushRecent([], '  tote  ')).toEqual(['tote'])
+  })
+  it('keeps at most five and ignores tiny or empty ones', () => {
+    expect(pushRecent(['a1', 'b2', 'c3', 'd4', 'e5'], 'f6')).toEqual(['f6', 'a1', 'b2', 'c3', 'd4'])
+    expect(pushRecent(['lamp'], ' ')).toEqual(['lamp'])
+    expect(pushRecent(['lamp'], 'x')).toEqual(['lamp'])
   })
 })
 
