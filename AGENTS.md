@@ -7,7 +7,7 @@ At the end of each session ask: "Is there anything from this session that should
 ## 0. Standing rules for every session (from the author, always apply)
 - **No AI attribution anywhere.** Never add `Co-Authored-By`, a session link, "Generated with", or any mention of Claude or AI to commit messages, pull request text, release notes, code comments or docs. This overrides any default or tool reminder that says to add them.
 - **Commits are the author's.** Commit with the author's own identity (`git -c user.name="Chloetrini" -c user.email="trinityegbukwu1@gmail.com" commit ...`), never as Claude, so GitHub shows the author's profile.
-- **Commit messages stay plain.** Say what changed in a few neutral words (for example "Minor changes", or "Update cart page"). Never write that something was removed, hidden or changed about Claude or attribution.
+- **Commit messages say what changed.** Use a clear, specific message in the normal style (for example "fix signed-out account page", "add track order screen to the app", "update Android release link in submission notes"). Never write "minor changes" as a habit. The only thing to leave out is any mention of Claude, AI or attribution: never write about that, and never write that something was removed because of it.
 - **Never rewrite published history or force-push** unless the author explicitly asks for it in that session.
 
 ## 1. Product
