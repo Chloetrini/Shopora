@@ -3,7 +3,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as Updates from 'expo-updates'
 import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
-import { Alert, ScrollView, Text, View } from 'react-native'
+import { Ionicons } from '@expo/vector-icons'
+import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { api, ApiError } from '../api'
 import { openSignedIn } from '../payment'
 import { API_URL } from '../config'
@@ -20,19 +21,21 @@ export function AccountScreen() {
   const nav = useNavigation<Nav>()
   const { user, logout } = useAuth()
   if (!user) {
-    // Signed out: a plain sign-in page, like the website. Settings only appear once there is an account.
+    // Signed out: a store-style account page. Heading, two buttons, then a plain list of things a visitor can do.
     return (
-      <View style={{ flex: 1, backgroundColor: c.background, justifyContent: 'center', padding: 24 }}>
-        <View style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 24, gap: 12 }}>
-          <Text style={{ color: c.foreground, fontSize: 15, fontWeight: '700', letterSpacing: 3, textAlign: 'center' }}>SHOPORA</Text>
-          <Text style={{ color: c.foreground, fontSize: 22, fontWeight: '700', textAlign: 'center', marginTop: 4 }}>Sign in to continue</Text>
-          <Text style={{ color: c.muted, textAlign: 'center', lineHeight: 21, marginBottom: 6 }}>
-            Your orders and cart live in your account, and your cart follows you between the website and this app.
-          </Text>
-          <Button label="Log in" onPress={() => nav.navigate('Login', { mode: 'login' })} />
-          <Button label="Create an account" variant="outline" onPress={() => nav.navigate('Login', { mode: 'register' })} />
+      <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={{ padding: 20, paddingTop: 24 }}>
+        <Text style={{ color: c.foreground, fontSize: 28, fontWeight: '700' }}>Account</Text>
+        <Text style={{ color: c.muted, lineHeight: 21, marginTop: 6 }}>Log in or join to see your orders and keep your cart on every device.</Text>
+        <View style={{ flexDirection: 'row', gap: 10, marginTop: 18 }}>
+          <Button label="Log in" onPress={() => nav.navigate('Login', { mode: 'login' })} style={{ flex: 1 }} />
+          <Button label="Join" variant="outline" onPress={() => nav.navigate('Login', { mode: 'register' })} style={{ flex: 1 }} />
         </View>
-      </View>
+        <View style={{ marginTop: 28, borderTopWidth: 1, borderTopColor: c.border }}>
+          <ListRow label="Track an order" onPress={() => WebBrowser.openBrowserAsync(`${API_URL}/track`)} />
+          <ListRow label="Visit the website" onPress={() => WebBrowser.openBrowserAsync(API_URL)} />
+        </View>
+        <View style={{ marginTop: 28 }}><AppVersion /></View>
+      </ScrollView>
     )
   }
   return (
@@ -51,6 +54,17 @@ export function AccountScreen() {
       <Button label="Open the website" variant="outline" onPress={async () => { if (!(await openSignedIn('/'))) await WebBrowser.openBrowserAsync(API_URL) }} />
       <Button label="Log out" variant="outline" onPress={logout} />
     </ScrollView>
+  )
+}
+
+/** One tappable line in a plain list, with a chevron. */
+function ListRow({ label, onPress }: { label: string; onPress: () => void }) {
+  const c = useTheme()
+  return (
+    <Pressable onPress={onPress} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: c.border }}>
+      <Text style={{ color: c.foreground, fontSize: 16 }}>{label}</Text>
+      <Ionicons name="chevron-forward" size={18} color={c.muted} />
+    </Pressable>
   )
 }
 
