@@ -26,10 +26,10 @@ export function SiteHeader({ user }: { user: PublicUser | null }) {
             <Link href="/track" aria-label="Track an order" className="site-track inline-flex size-9 items-center justify-center rounded-md text-muted-foreground hover:bg-surface hover:text-foreground md:hidden">
               <PackageSearch className="size-[18px]" aria-hidden />
             </Link>
-            <ThemeToggle />
-            <CartLink />
+            <span className="site-theme"><ThemeToggle /></span>
+            <span className="site-cart"><CartLink /></span>
             <span className="mx-2 hidden h-5 w-px bg-border sm:block" aria-hidden />
-            <div className="site-account"><UserMenu user={user} /></div>
+            <UserMenu user={user} />
           </div>
         </div>
       </header>

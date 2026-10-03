@@ -32,10 +32,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      {!filtered && <Hero featured={featured} />}
+      {!filtered && <div className="app-hide"><Hero featured={featured} /></div>}
 
       {!filtered && (
-        <ul className="mt-6 grid gap-8 border-t border-border pt-10 sm:grid-cols-3 sm:gap-10">
+        <ul className="app-hide mt-6 grid gap-8 border-t border-border pt-10 sm:grid-cols-3 sm:gap-10">
           {ASSURANCES.map((t, i) => (
             <li key={t.title}>
               <p className="text-xs font-medium tabular-nums text-muted-foreground">{String(i + 1).padStart(2, '0')}</p>
@@ -46,9 +46,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         </ul>
       )}
 
-      <section id="shop" className="scroll-mt-24 pt-16">
+      <section id="shop" className="app-shop scroll-mt-24 pt-16">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 className="font-display text-2xl">{f.category ? CATEGORIES.find((c) => c.slug === f.category)?.label : 'All products'}</h2>
+          <h2 className="app-hide font-display text-2xl">{f.category ? CATEGORIES.find((c) => c.slug === f.category)?.label : 'All products'}</h2>
           <SearchBox
             products={all.map((p) => ({ slug: p.slug, name: p.name, priceCents: p.priceCents, currency: p.currency, category: p.category, imageUrl: p.imageUrl }))}
             categories={CATEGORIES.map((c) => ({ slug: c.slug, label: c.label }))}
@@ -66,7 +66,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           ))}
         </nav>
 
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+        <div className="app-hide mt-5 flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
           <p>{products.length} {products.length === 1 ? 'product' : 'products'}{f.search ? ` for “${f.search}”` : ''}</p>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
             Sort:
@@ -99,7 +99,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       </section>
 
       {!filtered && (
-        <section className="mt-24 grid items-center gap-6 border-t border-border pt-14 lg:grid-cols-2">
+        <section className="app-hide mt-24 grid items-center gap-6 border-t border-border pt-14 lg:grid-cols-2">
           <div>
             <h2 className="font-display text-2xl">Buy as a guest, or keep it all together.</h2>
             <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">You never need an account to buy. Sign in and every order lives in one place with live tracking. Signing in with Google also picks up earlier orders placed with the same email.</p>
