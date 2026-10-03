@@ -34,7 +34,6 @@
           "cameraPermission": "Shopora uses the camera so you can take product pictures."
         }
       ],
-      "expo-build-properties",
       [
         "expo-build-properties",
         {
