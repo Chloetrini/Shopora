@@ -50,6 +50,11 @@ upload photos), `/admin/discounts` and `/admin/delivery`. If order emails don't 
 
 ## Phone app
 
-See `mobile/README.md`. Run it with `cd mobile && npm install && npx expo start`, or publish an update with
+Shopora also has a phone app built with Expo (React Native). It uses the same API and database as the website, so you sign in with the same account and the cart syncs between the website and the phone within seconds. The app has the shop, product pages, checkout with Paystack, order tracking and an admin tab for shop owners.
+
+- **Android:** [download the Android test build](https://expo.dev/artifacts/eas/V_JFHU0r_E8auCD3lRmDtxcZonntuCuCah7N5p1WILQ.apk) (a test build, not on the Play Store yet).
+- **iPhone:** not on the App Store yet. Payments run in Paystack test mode, so no real money moves.
+
+For developers: see `mobile/README.md`. Run it with `cd mobile && npm install && npx expo start`, or publish an update with
 `npx eas-cli update --branch preview --environment preview --message "…" --platform all`.
 Build the installable Android file with `npx eas-cli build -p android --profile preview`.
