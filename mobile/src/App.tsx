@@ -40,7 +40,7 @@ function Tabs() {
   const { user } = useAuth()
   const icon = (name: keyof typeof Ionicons.glyphMap) => ({ color, size }: { color: string; size: number }) => <Ionicons name={name} color={color} size={size} />
   return (
-    <Tab.Navigator screenOptions={({ navigation }) => ({ headerRight: () => <HeaderAccount onPress={() => navigation.navigate('Account')} />, tabBarActiveTintColor: c.primary, tabBarInactiveTintColor: c.muted, tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border }, headerStyle: { backgroundColor: c.surface }, headerTintColor: c.foreground })}>
+    <Tab.Navigator screenOptions={({ navigation }) => ({ headerRight: () => <HeaderAccount onPress={() => (user ? navigation.navigate('Account') : navigation.navigate('Login', { mode: 'login' }))} />, tabBarActiveTintColor: c.primary, tabBarInactiveTintColor: c.muted, tabBarStyle: { backgroundColor: c.surface, borderTopColor: c.border }, headerStyle: { backgroundColor: c.surface }, headerTintColor: c.foreground })}>
       <Tab.Screen name="Shop" component={ShopScreen} options={{ title: 'Shopora', tabBarIcon: icon('storefront-outline') }} />
       <Tab.Screen name="Cart" component={CartScreen} options={{ title: 'Your cart', tabBarIcon: icon('bag-outline'), tabBarBadge: cart.count > 0 ? cart.count : undefined }} />
       <Tab.Screen name="Orders" component={OrdersScreen} options={{ title: 'Your orders', tabBarIcon: icon('receipt-outline') }} />

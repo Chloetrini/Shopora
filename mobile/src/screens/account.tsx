@@ -20,16 +20,19 @@ export function AccountScreen() {
   const nav = useNavigation<Nav>()
   const { user, logout } = useAuth()
   if (!user) {
+    // Signed out: a plain sign-in page, like the website. Settings only appear once there is an account.
     return (
-      <Center>
-        <Text style={{ color: c.foreground, fontSize: 20, fontWeight: '700' }}>Your account</Text>
-        <Note text="Log in once and your cart follows you between the website and this app." />
-        <View style={{ gap: 10, width: '100%', maxWidth: 320 }}>
+      <View style={{ flex: 1, backgroundColor: c.background, justifyContent: 'center', padding: 24 }}>
+        <View style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 24, gap: 12 }}>
+          <Text style={{ color: c.foreground, fontSize: 15, fontWeight: '700', letterSpacing: 3, textAlign: 'center' }}>SHOPORA</Text>
+          <Text style={{ color: c.foreground, fontSize: 22, fontWeight: '700', textAlign: 'center', marginTop: 4 }}>Sign in to continue</Text>
+          <Text style={{ color: c.muted, textAlign: 'center', lineHeight: 21, marginBottom: 6 }}>
+            Your orders and cart live in your account, and your cart follows you between the website and this app.
+          </Text>
           <Button label="Log in" onPress={() => nav.navigate('Login', { mode: 'login' })} />
           <Button label="Create an account" variant="outline" onPress={() => nav.navigate('Login', { mode: 'register' })} />
-          <View style={{ marginTop: 12 }}><AppearanceRow /></View>
         </View>
-      </Center>
+      </View>
     )
   }
   return (
