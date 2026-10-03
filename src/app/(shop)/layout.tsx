@@ -3,6 +3,7 @@ import { SiteFooter } from '@/components/layout/site-footer'
 import { cookies } from 'next/headers'
 import { WelcomeBanner } from '@/components/layout/welcome-banner'
 import { VerifyBanner } from '@/components/layout/verify-banner'
+import { AppTabBar } from '@/components/layout/app-tab-bar'
 import { SiteHeader } from '@/components/layout/site-header'
 import { getSessionUser } from '@/server/current-user'
 import { getCart } from '@/server/db/cart'
@@ -29,6 +30,7 @@ export default async function ShopLayout({ children }: { children: React.ReactNo
       <SiteHeader user={user} />
       <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
       <SiteFooter />
+      <AppTabBar signedIn={!!user} isAdmin={!!user?.isAdmin} />
     </CartProvider>
   )
 }

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: SITE.name, statusBarStyle: 'default' },
 }
 
-export const viewport: Viewport = { themeColor: '#0b6b63' }
+export const viewport: Viewport = { themeColor: '#0b6b63', viewportFit: 'cover' }
 
 // Sets the theme before first paint so there is no flash. Key must match any future toggle.
 const themeScript = `try{var t=localStorage.getItem('shopora-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}`

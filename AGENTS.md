@@ -322,3 +322,4 @@ Changing `SESSION_SECRET` signs everyone out.
 
 ## Install to home screen
 - `src/app/manifest.ts` + `public/icons/` make the site installable (standalone display, teal theme). iPhone: Safari Share, then Add to Home Screen. Android Chrome: menu, Install app.
+- Installed on a phone (display-mode: standalone, max-width 767px): `.app-tabbar` (components/layout/app-tab-bar.tsx) shows Shop / Cart / Orders (Track when signed out) / Account (+ Admin), and the footer, promo strip and website nav are hidden (rules at the end of globals.css). Browsers and desktop are unchanged.
