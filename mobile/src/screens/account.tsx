@@ -31,7 +31,7 @@ export function AccountScreen() {
           <Button label="Join" variant="outline" onPress={() => nav.navigate('Login', { mode: 'register' })} style={{ flex: 1 }} />
         </View>
         <View style={{ marginTop: 28, borderTopWidth: 1, borderTopColor: c.border }}>
-          <ListRow label="Track an order" onPress={() => WebBrowser.openBrowserAsync(`${API_URL}/track`)} />
+          <ListRow label="Track an order" onPress={() => nav.navigate('Track')} />
           <ListRow label="Visit the website" onPress={() => WebBrowser.openBrowserAsync(API_URL)} />
         </View>
         <View style={{ marginTop: 28 }}><AppVersion /></View>

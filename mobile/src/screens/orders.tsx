@@ -10,7 +10,7 @@ import type { RootStack } from '../navigation'
 import { openPayment } from '../payment'
 import { useTheme } from '../theme'
 import { isPaid, STATUS_LABEL, type OrderSummary, type OrderView } from '../types'
-import { Button, Center, Note } from '../ui'
+import { Button, Center, Field, Note } from '../ui'
 
 type Nav = NativeStackNavigationProp<RootStack>
 const when = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -27,7 +27,7 @@ export function OrdersScreen() {
     api<{ orders: OrderSummary[] }>('/api/orders').then((b) => { setOrders(b.orders); setError('') }).catch((e) => setError(e instanceof Error ? e.message : 'Could not load your orders.'))
   }, [user]))
 
-  if (!user) return <Center><Note text="Log in to see your orders." /><Button label="Log in" onPress={() => nav.navigate('Login', { mode: 'login' })} /></Center>
+  if (!user) return <Center><Note text="Log in to see your orders." /><View style={{ gap: 10, width: '100%', maxWidth: 320 }}><Button label="Log in" onPress={() => nav.navigate('Login', { mode: 'login' })} /><Button label="Track an order" variant="outline" onPress={() => nav.navigate('Track')} /></View></Center>
   if (error) return <Center><Note text={error} error /></Center>
   if (!orders) return <Center><Note text="Loading your orders…" /></Center>
   if (orders.length === 0) return <Center><Note text="No orders yet. When you place one it shows up here." /></Center>
@@ -135,4 +135,38 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Line({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
   const c = useTheme()
   return <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={{ color: c.foreground, fontWeight: bold ? '700' : '400' }}>{label}</Text><Text style={{ color: c.foreground, fontWeight: bold ? '700' : '400' }}>{value}</Text></View>
+}
+
+/** Find an order without an account: the email it was placed with plus the order number from the confirmation email. */
+export function TrackScreen() {
+  const c = useTheme()
+  const nav = useNavigation<Nav>()
+  const [email, setEmail] = useState('')
+  const [reference, setReference] = useState('')
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function find() {
+    setBusy(true)
+    setError('')
+    try {
+      const { id } = await api<{ id: string }>('/api/orders/track', { method: 'POST', body: { email: email.trim(), reference: reference.trim() } })
+      nav.replace('Order', { id })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong. Try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={{ padding: 20 }} keyboardShouldPersistTaps="handled">
+      <Text style={{ color: c.foreground, fontSize: 28, fontWeight: '700' }}>Track an order</Text>
+      <Text style={{ color: c.muted, lineHeight: 21, marginTop: 6, marginBottom: 18 }}>No account needed. Use the email you ordered with and the order number from your confirmation email (the first 8 characters are enough).</Text>
+      <Field label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoComplete="email" />
+      <Field label="Order number" value={reference} onChangeText={setReference} autoCapitalize="none" placeholder="e.g. 4f0ecb8e" />
+      {error ? <Note text={error} error /> : null}
+      <Button label="Track order" onPress={find} busy={busy} disabled={!email.trim() || reference.trim().length < 8} />
+    </ScrollView>
+  )
 }

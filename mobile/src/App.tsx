@@ -15,7 +15,7 @@ import { AdminScreen } from './screens/admin'
 import { ProfileScreen } from './screens/profile'
 import { CartScreen } from './screens/cart'
 import { CheckoutScreen } from './screens/checkout'
-import { OrderScreen, OrdersScreen } from './screens/orders'
+import { OrderScreen, OrdersScreen, TrackScreen } from './screens/orders'
 import { ProductScreen, ShopScreen } from './screens/shop'
 import { useTheme } from './theme'
 import { Avatar } from './ui'
@@ -62,6 +62,7 @@ function Root() {
         <Stack.Screen name="Product" component={ProductScreen} options={({ route }) => ({ title: route.params.name ?? 'Product' })} />
         <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
         <Stack.Screen name="Order" component={OrderScreen} options={{ title: 'Your order' }} />
+        <Stack.Screen name="Track" component={TrackScreen} options={{ title: 'Track an order' }} />
         <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Your profile' }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: '', presentation: 'modal' }} />
       </Stack.Navigator>
