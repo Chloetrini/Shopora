@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useCart } from '@/hooks/use-cart'
 import type { Product } from '@/server/db/products'
 
-export function AddToCartButton({ product }: { product: Pick<Product, 'id' | 'name' | 'priceCents' | 'currency' | 'stock'> }) {
+export function AddToCartButton({ product }: { product: Pick<Product, 'id' | 'name' | 'priceCents' | 'currency' | 'stock'> & Partial<Pick<Product, 'slug' | 'imageUrl'>> }) {
   const { add } = useCart()
   const [added, setAdded] = useState(false)
   if (product.stock === 0) {
@@ -14,7 +14,7 @@ export function AddToCartButton({ product }: { product: Pick<Product, 'id' | 'na
     <button
       type="button"
       onClick={() => {
-        add({ productId: product.id, name: product.name, priceCents: product.priceCents, currency: product.currency })
+        add({ productId: product.id, name: product.name, priceCents: product.priceCents, currency: product.currency, slug: product.slug, imageUrl: product.imageUrl ?? null })
         setAdded(true)
         setTimeout(() => setAdded(false), 1500)
       }}

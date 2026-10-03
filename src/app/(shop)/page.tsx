@@ -11,7 +11,11 @@ import { listProducts } from '@/server/db/products'
 // Reads the database on every request so new products show up without a rebuild.
 export const dynamic = 'force-dynamic'
 
-const ASSURANCES = ['Secure payment with Paystack', 'Delivery fee shown before you pay', 'Track every order']
+const ASSURANCES = [
+  { title: 'Secure payment', text: 'Pay by card through Paystack. Your card details never touch our servers.' },
+  { title: 'Clear delivery fees', text: 'See the delivery fee for your area before you pay, with no surprises at the door.' },
+  { title: 'Track every order', text: 'Follow each order from payment to delivery, signed in or not.' },
+]
 
 export default async function HomePage({ searchParams }: { searchParams: Promise<{ category?: string; sort?: string; q?: string }> }) {
   const f = parseCatalogQuery(await searchParams)
@@ -22,7 +26,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     ratingSummaries().catch(() => ({})),
   ])
   const products = applyCatalogFilters(all, f)
-  const featured = all.slice(0, 3)
+  const featured = all.slice(0, 12)
   const fix = products.length === 0 && f.search ? didYouMean(all, f.search) : null
   const filtered = !!(f.category || f.search)
 
@@ -31,8 +35,14 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {!filtered && <Hero featured={featured} />}
 
       {!filtered && (
-        <ul className="mt-4 grid grid-cols-1 divide-y divide-border border-y border-border text-sm text-muted-foreground sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          {ASSURANCES.map((t) => <li key={t} className="px-4 py-3.5 text-center sm:py-4">{t}</li>)}
+        <ul className="mt-6 grid gap-8 border-t border-border pt-10 sm:grid-cols-3 sm:gap-10">
+          {ASSURANCES.map((t, i) => (
+            <li key={t.title}>
+              <p className="text-xs font-medium tabular-nums text-muted-foreground">{String(i + 1).padStart(2, '0')}</p>
+              <p className="mt-2 text-sm font-semibold">{t.title}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{t.text}</p>
+            </li>
+          ))}
         </ul>
       )}
 
