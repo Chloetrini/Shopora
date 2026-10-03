@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { PackageCheck, ShieldCheck, Mail, LogIn } from 'lucide-react'
 import { ProductCard } from '@/components/shop/product-card'
+import { SearchBox } from '@/components/shop/search-box'
 import { Hero } from '@/components/shop/hero'
 import { applyCatalogFilters, catalogHref, CATEGORIES, parseCatalogQuery, SORTS } from '@/lib/catalog'
 import { getSessionUser } from '@/server/current-user'
@@ -50,13 +51,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <section id="shop" className="scroll-mt-24 pt-12">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <h2 className="font-display text-3xl font-semibold">{f.category ? CATEGORIES.find((c) => c.slug === f.category)?.label : 'Shop all'}</h2>
-          <form action="/" method="get" className="flex gap-2" role="search">
-            {f.category && <input type="hidden" name="category" value={f.category} />}
-            {f.sort !== 'featured' && <input type="hidden" name="sort" value={f.sort} />}
-            <label htmlFor="q" className="sr-only">Search products</label>
-            <input id="q" name="q" defaultValue={f.search} placeholder="Search products" className="w-44 rounded-full border border-border bg-surface px-4 py-2 text-sm sm:w-64" />
-            <button type="submit" className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-ink-foreground">Search</button>
-          </form>
+          <SearchBox
+            products={all.map((p) => ({ slug: p.slug, name: p.name, priceCents: p.priceCents, currency: p.currency, category: p.category }))}
+            categories={CATEGORIES.map((c) => ({ slug: c.slug, label: c.label }))}
+            initialQuery={f.search} category={f.category} sort={f.sort}
+          />
         </div>
 
         <nav aria-label="Categories" className="-mx-4 mt-5 flex gap-2 overflow-x-auto px-4 pb-2">

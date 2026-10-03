@@ -150,6 +150,11 @@ A user logs in on both; adding to the cart on the web shows up on the phone almo
   verified the address): they are logged in at once, get the welcome email and the welcome message (website banner / app alert; the app learns `created` from the one-time code).
   Registering an email whose account **never confirmed** takes that account over (new name and password, old sessions ended), because its creator never proved the address; a confirmed or
   Google-linked account is never touched (409). Tests: `signup-flow.test.ts`.
+- **Search as you type** (website and app): suggestions drop down while you type (best match first: a name that starts with what you typed, then a word that starts with it,
+  then anywhere in the name, then description/category; accents and capitals ignored; every word of the query must match), with the matching part in bold and the price, plus an
+  "All in <category>" row. Arrow keys / Enter / Esc on the website (`role="combobox"`). The product list below follows the typing: the website updates the URL (`?q=`) 250 ms after the last key,
+  the app filters letter by letter. The logic is one pure file, `src/lib/search.ts`, **copied byte for byte to `mobile/src/search.ts`** (a test fails if they differ; the app can't import from outside its folder).
+  Suggestions are matched in the browser/phone from the product list already loaded, so there is no extra API call. Tests: `search.test.ts`.
 - **Milestone 12 ✅ Profile** (website `/profile`, app Account → Edit profile): photo (centre-cropped to 512 px JPEG in the browser/phone, stored on the user row
   (`avatar_b64`, `avatar_type`, `avatar_updated_at`), served only to its owner from `GET /api/users/me/avatar?v=…`, type decided from the bytes, ≤ 1.5 MB), full name, phone
   (optional, `phoneField`), the email shown read-only with a confirmed badge (changing the email would break sign-in and order emails, so it is not offered), change password

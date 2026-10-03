@@ -1,3 +1,4 @@
+import { matchesQuery } from './search'
 export const CATEGORIES = [
   { slug: 'bags', label: 'Bags' },
   { slug: 'accessories', label: 'Accessories' },
@@ -31,12 +32,7 @@ export function parseCatalogQuery(q: { category?: string; sort?: string; q?: str
 }
 
 export function applyCatalogFilters<T extends Sortable>(products: T[], f: { category: string; sort: SortValue; search: string }): T[] {
-  const needle = f.search.toLowerCase()
-  const out = products.filter(
-    (p) =>
-      (!f.category || p.category === f.category) &&
-      (!needle || p.name.toLowerCase().includes(needle) || p.description.toLowerCase().includes(needle)),
-  )
+  const out = products.filter((p) => (!f.category || p.category === f.category) && (!f.search.trim() || matchesQuery(p, f.search)))
   if (f.sort === 'price-asc') out.sort((a, b) => a.priceCents - b.priceCents)
   else if (f.sort === 'price-desc') out.sort((a, b) => b.priceCents - a.priceCents)
   else if (f.sort === 'name') out.sort((a, b) => a.name.localeCompare(b.name))

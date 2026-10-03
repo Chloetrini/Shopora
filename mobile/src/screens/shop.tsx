@@ -7,6 +7,7 @@ import { useAuth } from '../auth'
 import { useCart } from '../cart'
 import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
+import { highlightParts, matchesQuery, suggest, suggestCategories } from '../search'
 import { useTheme } from '../theme'
 import type { Product } from '../types'
 import { Button, Center, Note, Photo, VerifyNotice } from '../ui'
@@ -33,6 +34,7 @@ export function ShopScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('')
+  const [focused, setFocused] = useState(false)
 
   const load = useCallback(async () => {
     try {
@@ -45,10 +47,12 @@ export function ShopScreen() {
   useEffect(() => { void load() }, [load])
 
   const categories = useMemo(() => [...new Set((products ?? []).map((p) => p.category))].sort(), [products])
-  const shown = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    return (products ?? []).filter((p) => (!category || p.category === category) && (!q || `${p.name} ${p.description}`.toLowerCase().includes(q)))
-  }, [products, search, category])
+  // The list follows what you type, letter by letter.
+  const shown = useMemo(() => (products ?? []).filter((p) => (!category || p.category === category) && (!search.trim() || matchesQuery(p, search))), [products, search, category])
+  // The suggestion card under the box: best matches first, and a matching category.
+  const hits = useMemo(() => suggest(products ?? [], search, 5), [products, search])
+  const catHits = useMemo(() => suggestCategories(categories.map((c) => ({ label: c })), search, 1), [categories, search])
+  const showSuggestions = focused && search.trim().length > 0
 
   if (!products) {
     return <Center>{error ? <><Note text={error} error /><Button label="Try again" onPress={load} /></> : <Note text="Loading the shop…" />}</Center>
@@ -57,6 +61,7 @@ export function ShopScreen() {
     <FlatList
       style={{ backgroundColor: c.background }}
       data={shown}
+      keyboardShouldPersistTaps="handled"
       keyExtractor={(p) => p.id}
       numColumns={2}
       columnWrapperStyle={{ gap: 12, paddingHorizontal: 12 }}
@@ -68,10 +73,33 @@ export function ShopScreen() {
           <TextInput
             value={search}
             onChangeText={setSearch}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setTimeout(() => setFocused(false), 150)}
+            returnKeyType="search"
+            autoCorrect={false}
             placeholder="Search the shop"
             placeholderTextColor={c.muted}
             style={{ borderWidth: 1, borderColor: c.border, backgroundColor: c.surface, color: c.foreground, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10 }}
           />
+          {showSuggestions && (
+            <View style={{ backgroundColor: c.surface, borderWidth: 1, borderColor: c.border, borderRadius: 14, overflow: 'hidden' }}>
+              {hits.length === 0 && catHits.length === 0 && <Text style={{ color: c.muted, padding: 12 }}>No suggestions for “{search.trim()}”.</Text>}
+              {hits.map((p) => (
+                <Pressable key={p.id} onPress={() => { setFocused(false); nav.navigate('Product', { slug: p.slug, name: p.name }) }}
+                  style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 12, paddingHorizontal: 14, paddingVertical: 11, borderBottomWidth: 1, borderBottomColor: c.border }}>
+                  <Text numberOfLines={1} style={{ color: c.muted, flex: 1 }}>
+                    {highlightParts(p.name, search).map((part, i) => <Text key={i} style={part.match ? { color: c.foreground, fontWeight: '700' } : undefined}>{part.text}</Text>)}
+                  </Text>
+                  <Text style={{ color: c.muted, fontSize: 12 }}>{formatMoney(p.priceCents, p.currency)}</Text>
+                </Pressable>
+              ))}
+              {catHits.map((cat) => (
+                <Pressable key={cat.label} onPress={() => { setCategory(cat.label); setSearch(''); setFocused(false) }} style={{ paddingHorizontal: 14, paddingVertical: 11 }}>
+                  <Text style={{ color: c.muted, textTransform: 'capitalize' }}>All in <Text style={{ color: c.foreground, fontWeight: '700' }}>{cat.label}</Text></Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {['', ...categories].map((cat) => (
               <Pressable key={cat || 'all'} onPress={() => setCategory(cat)}
