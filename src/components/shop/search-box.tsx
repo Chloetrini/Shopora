@@ -106,7 +106,7 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
   }
 
   return (
-    <div ref={wrapRef} className="relative">
+    <div ref={wrapRef} className="app-search relative">
       <form action="/" method="get" role="search" className="flex gap-2" onSubmit={() => { if (typed) remember(q) }}>
         {category && <input type="hidden" name="category" value={category} />}
         {sort !== 'featured' && <input type="hidden" name="sort" value={sort} />}
@@ -123,7 +123,7 @@ export function SearchBox({ products, categories, initialQuery, category, sort }
             className="w-52 rounded-md border border-border bg-surface py-2 pl-10 pr-4 text-sm sm:w-72"
           />
         </div>
-        <button type="submit" className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">Search</button>
+        <button type="submit" className="app-hide rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">Search</button>
       </form>
 
       {showList && (
