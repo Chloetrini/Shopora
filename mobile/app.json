@@ -33,6 +33,20 @@
           "photosPermission": "Shopora uses your photos so you can add product pictures.",
           "cameraPermission": "Shopora uses the camera so you can take product pictures."
         }
+      ],
+      "expo-build-properties",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildArchs": [
+              "arm64-v8a",
+              "armeabi-v7a"
+            ],
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
       ]
     ],
     "extra": {
