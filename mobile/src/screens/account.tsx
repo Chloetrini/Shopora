@@ -34,6 +34,7 @@ export function AccountScreen() {
           <ListRow label="Track an order" onPress={() => nav.navigate('Track')} />
           <ListRow label="Visit the website" onPress={() => WebBrowser.openBrowserAsync(API_URL)} />
         </View>
+        <View style={{ marginTop: 28 }}><AppearanceRow /></View>
         <View style={{ marginTop: 28 }}><AppVersion /></View>
       </ScrollView>
     )
