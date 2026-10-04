@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { siteUrl } from '@/lib/site-url'
+import { validAppRedirect } from '@/server/app-auth'
 import { startPayment } from '@/server/payments'
 import { paystackConfigured, PaystackError } from '@/server/paystack'
 import { allow, clientIp } from '@/server/rate-limit'
@@ -13,7 +14,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ success: false, message: 'Payments are not set up yet.' }, { status: 503 })
   }
   try {
-    const url = await startPayment((await params).id)
+    // Optional body from the phone app: where to send the buyer back to afterwards (its own link only).
+    const body = (await req.json().catch(() => null)) as { appReturn?: unknown } | null
+    const appReturn = validAppRedirect(typeof body?.appReturn === 'string' ? body.appReturn : null)
+    const url = await startPayment((await params).id, appReturn)
     if (!url) return NextResponse.json({ success: false, message: 'Order not found' }, { status: 404 })
     return NextResponse.json({ success: true, message: 'Payment started', body: { paymentUrl: url } })
   } catch (e) {

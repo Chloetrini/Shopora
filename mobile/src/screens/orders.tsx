@@ -7,7 +7,7 @@ import { useAuth } from '../auth'
 import { ORDER_POLL_MS } from '../config'
 import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
-import { openPayment } from '../payment'
+import { payOrder } from '../payment'
 import { useTheme } from '../theme'
 import { isPaid, STATUS_LABEL, type OrderSummary, type OrderView } from '../types'
 import { Button, Center, Field, Note } from '../ui'
@@ -69,8 +69,9 @@ export function OrderScreen({ route }: { route: { params: RootStack['Order'] } }
   async function pay() {
     setBusy(true)
     try {
-      await openPayment(id)
+      const r = await payOrder(id)
       await load()
+      if (r === 'failed') setError('The payment didn’t go through. You can try again.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not start the payment.')
     } finally {

@@ -1,3 +1,4 @@
+import * as Linking from 'expo-linking'
 import * as WebBrowser from 'expo-web-browser'
 import { api } from './api'
 import { API_URL } from './config'
@@ -17,12 +18,18 @@ export async function openSignedIn(path: string): Promise<boolean> {
   }
 }
 
+export type PaymentResult = 'paid' | 'failed' | 'checking' | 'cancelled'
+
 /**
- * Opens Paystack for an order, signed in to the website first so the pages you land on afterwards show your account
- * (not "Log in"). If the hand-off fails we still open the payment page.
+ * Pays an order on Paystack's page (card details are only ever typed on Paystack's own secure page). The page opens in
+ * the phone's secure sheet over the app, and when the payment is done the website sends the phone straight back into
+ * the app, which closes the sheet, so the buyer never lands on a website page and the app shows its own order screen.
  */
-export async function openPayment(orderId: string, fallbackUrl?: string): Promise<void> {
-  if (await openSignedIn(`/api/orders/${orderId}/pay`)) return
-  if (!fallbackUrl) throw new Error('Could not start the payment. Try again.')
-  await WebBrowser.openBrowserAsync(fallbackUrl)
+export async function payOrder(orderId: string): Promise<PaymentResult> {
+  const back = Linking.createURL('paid') // shopora://paid in the installed app, an exp:// link in Expo Go
+  const { paymentUrl } = await api<{ paymentUrl: string }>(`/api/orders/${orderId}/pay`, { method: 'POST', body: { appReturn: back } })
+  const result = await WebBrowser.openAuthSessionAsync(paymentUrl, back)
+  if (result.type !== 'success') return 'cancelled'
+  const status = Linking.parse(result.url).queryParams?.status
+  return status === 'paid' || status === 'failed' || status === 'checking' ? status : 'checking'
 }

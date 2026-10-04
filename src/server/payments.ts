@@ -7,7 +7,7 @@ import { decidePayment, orderIdFromReference, type PaymentVerdict } from './paym
 import { initializeTransaction, verifyTransaction } from './paystack'
 
 /** Starts a Paystack payment for a pending order. Null when the order doesn't exist or isn't pending. */
-export async function startPayment(orderId: string): Promise<string | null> {
+export async function startPayment(orderId: string, appReturn?: string | null): Promise<string | null> {
   const reference = `${orderId}-${randomBytes(6).toString('hex')}`
   const order = await setPaymentReference(orderId, reference)
   if (!order) return null
@@ -16,7 +16,8 @@ export async function startPayment(orderId: string): Promise<string | null> {
     amount: order.totalCents,
     currency: order.currency,
     reference,
-    callbackUrl: `${siteUrl()}/api/paystack/callback`,
+    // The phone app asks to be sent back into the app (not to a website page) once the buyer has paid.
+    callbackUrl: `${siteUrl()}/api/paystack/callback${appReturn ? `?app_return=${encodeURIComponent(appReturn)}` : ''}`,
   })
   return init.authorization_url
 }

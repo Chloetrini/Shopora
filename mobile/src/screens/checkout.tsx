@@ -7,7 +7,7 @@ import { useAuth } from '../auth'
 import { useCart } from '../cart'
 import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
-import { openPayment } from '../payment'
+import { payOrder } from '../payment'
 import { useTheme } from '../theme'
 import type { Address } from '../types'
 import { Button, Center, Field, Note } from '../ui'
@@ -54,7 +54,7 @@ export function CheckoutScreen() {
     setErrors({})
     setFormError('')
     try {
-      const { id, paymentUrl } = await api<{ id: string; paymentUrl: string | null }>('/api/orders', {
+      const { id } = await api<{ id: string; paymentUrl: string | null }>('/api/orders', {
         method: 'POST',
         body: {
           items: cart.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
@@ -65,7 +65,7 @@ export function CheckoutScreen() {
       })
       void cart.refresh() // the server emptied the cart when the order was placed
       nav.replace('Order', { id })
-      if (paymentUrl) await openPayment(id, paymentUrl) // pay on Paystack's page; the order screen picks up the result
+      await payOrder(id).catch(() => 'cancelled') // Paystack's page in a sheet; it returns here, and the order screen shows the result
     } catch (e) {
       if (e instanceof ApiError && e.details) setErrors(Object.fromEntries(e.details.map((d) => [d.path, d.message])))
       setFormError(e instanceof Error ? e.message : 'Something went wrong. Try again.')
