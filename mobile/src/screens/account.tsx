@@ -3,8 +3,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import * as Updates from 'expo-updates'
 import { useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
+import * as WebBrowser from 'expo-web-browser'
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native'
 import { api, ApiError } from '../api'
+import { openSignedIn } from '../payment'
+import { API_URL } from '../config'
 import { useAuth } from '../auth'
 import type { RootStack } from '../navigation'
 import { useTheme } from '../theme'
@@ -29,6 +32,7 @@ export function AccountScreen() {
         </View>
         <View style={{ marginTop: 28, borderTopWidth: 1, borderTopColor: c.border }}>
           <ListRow label="Track an order" onPress={() => nav.navigate('Track')} />
+          <ListRow label="Visit the website" onPress={() => WebBrowser.openBrowserAsync(API_URL)} />
         </View>
         <View style={{ marginTop: 28 }}><AppVersion /></View>
       </ScrollView>
@@ -48,6 +52,7 @@ export function AccountScreen() {
       <Button label="Track an order" variant="outline" onPress={() => nav.navigate('Track')} />
       <AppearanceRow />
       <AppVersion />
+      <Button label="Open the website" variant="outline" onPress={async () => { if (!(await openSignedIn('/'))) await WebBrowser.openBrowserAsync(API_URL) }} />
       <Button label="Log out" variant="outline" onPress={logout} />
     </ScrollView>
   )
