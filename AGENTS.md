@@ -333,7 +333,7 @@ Changing `SESSION_SECRET` signs everyone out.
 
 ## Distribution (current)
 - **Android:** build `45775c81-b129-4ce4-af93-99422f2fec57` (smaller: `expo-build-properties` builds only arm64-v8a and armeabi-v7a, minify and shrink on; update checks on every launch plus a Check for updates button on Account). Expo artifact links expire, so the APK is also a **GitHub Release**: https://github.com/Chloetrini/Shopora/releases/tag/v1.0.0 (asset `application-45775c81-b129-4ce4-af93-99422f2fec57.1.apk`, 40.7 MB). Graders install that file. A change that needs new native code means a new build and a new release asset; JS-only changes go out with `eas update --branch preview --environment preview --platform all`.
-- **iPhone:** no free store-free install exists (needs a paid Apple account). Expo Go only opens projects owned by or shared with the viewer's Expo account (there is no public setting), so graders use the website's Add to Home Screen plus a screen-recording of the real iPhone app (link goes in SUBMISSION.md).
+- **iPhone:** no free store-free install exists (needs a paid Apple account), and Expo Go only opens projects owned by or shared with the viewer's Expo account, so iPhone users use the website (Add to Home Screen). The submission video is one continuous demo on a physical phone (web and app, same account, cart syncing both ways).
 - **App changes in this stretch:** signed-out Account is a store-style page (heading, Log in / Join, list); the top-right Log in opens the login form directly; Track an order is an in-app screen.
 
 ## Paying from the phone app (stays in the app)

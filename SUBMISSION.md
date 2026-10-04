@@ -9,8 +9,8 @@ HNG15 Internship, Lesson 2 (shop website) and Lesson 3 (mobile app).
 | Live website | https://www.shopora.website |
 | Code (website and app) | https://github.com/Chloetrini/Shopora, branch `chloe/milestone-1-foundation` (the default branch) (the website lives in the repo root, the phone app in `mobile/`) |
 | Android app (install this) | https://github.com/Chloetrini/Shopora/releases/tag/v1.0.0 (download the `.apk` under Assets; direct link: https://github.com/Chloetrini/Shopora/releases/download/v1.0.0/application-45775c81-b129-4ce4-af93-99422f2fec57.1.apk). It is on a permanent GitHub Release, and it loads newer app updates by itself, so nobody needs to reinstall |
-| iPhone and any phone (no store) | Open https://www.shopora.website in Safari (iPhone) or Chrome (Android), then Add to Home Screen. It opens full screen and, on a phone, looks like the app (bottom tab bar). Same account and cart |
-| iPhone app demo | VIDEO LINK (a screen recording of the real iPhone app, added by the author) |
+| Video demonstration | VIDEO LINK (one continuous recording on a physical phone: sign in on the website, add an item, log in to the app with the same account, the item is in the app cart, add another item in the app, it appears in the website cart) |
+| Try the website on any phone | Open https://www.shopora.website and tap Add to Home Screen (Safari on iPhone, Install app in Chrome on Android). On a phone it then looks like the app. Same account and cart |
 | Spec and rules | `AGENTS.md` in the repo |
 
 ## What it is
@@ -31,6 +31,14 @@ so an account, a cart and an order are the same everywhere.
 
 Extras: Paystack payments in test mode, order tracking for guests and members, admin tools (orders, products, discounts, delivery fees),
 wishlist, reviews, saved addresses, back-in-stock alerts, profile with photo, forgot/reset password, product photos stored in the database.
+
+## Mobile application submission (what the form asks for)
+
+| Required | Where |
+|---|---|
+| 1. APK download link | The GitHub Release link in the table above (public, no login needed) |
+| 2. Repository link | https://github.com/Chloetrini/Shopora (app in `mobile/`) |
+| 3. Video demonstration | The video link in the table above |
 
 ## Lesson 3 checklist (mobile app)
 
