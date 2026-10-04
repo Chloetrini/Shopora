@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { challengeFor, fetchGoogleProfile, googleAuthUrl, newPkce } from './google'
+import { challengeFor, fetchGoogleProfile, googleAuthUrl, newPkce, verifyGoogleIdToken } from './google'
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -40,5 +40,30 @@ describe('google helpers', () => {
     expect((await fetchGoogleProfile('c', 'v')).email_verified).toBe(false)
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 400 })))
     await expect(fetchGoogleProfile('c', 'v')).rejects.toThrow(/token exchange/)
+  })
+})
+
+describe('verifyGoogleIdToken (phone app sign-in)', () => {
+  const info = (over: Record<string, unknown> = {}) =>
+    new Response(JSON.stringify({ aud: 'cid', iss: 'https://accounts.google.com', exp: String(Math.floor(Date.now() / 1000) + 600), sub: '42', email: 'a@b.co', email_verified: 'true', name: 'Ada', ...over }))
+
+  it('accepts a token made for our client and returns the profile', async () => {
+    vi.stubEnv('GOOGLE_CLIENT_ID', 'cid')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(info()))
+    expect(await verifyGoogleIdToken('t'.repeat(30))).toEqual({ sub: '42', email: 'a@b.co', email_verified: true, name: 'Ada' })
+  })
+  it('refuses a token issued for a different app, a wrong issuer, an expired token, and one Google rejects', async () => {
+    vi.stubEnv('GOOGLE_CLIENT_ID', 'cid')
+    for (const over of [{ aud: 'someone-else' }, { iss: 'https://evil.example' }, { exp: String(Math.floor(Date.now() / 1000) - 5) }]) {
+      vi.stubGlobal('fetch', vi.fn().mockResolvedValue(info(over)))
+      await expect(verifyGoogleIdToken('t'.repeat(30))).rejects.toThrow()
+    }
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}', { status: 400 })))
+    await expect(verifyGoogleIdToken('t'.repeat(30))).rejects.toThrow()
+  })
+  it('reports an unverified email as unverified', async () => {
+    vi.stubEnv('GOOGLE_CLIENT_ID', 'cid')
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(info({ email_verified: 'false' })))
+    expect((await verifyGoogleIdToken('t'.repeat(30))).email_verified).toBe(false)
   })
 })

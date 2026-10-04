@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store'
 import { AppState } from 'react-native'
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, ApiError, setToken } from './api'
-import { googleSignIn } from './google'
+import { googleSignIn, nativeGoogleSignIn } from './google'
 import type { User } from './types'
 
 const KEY = 'shopora_token'
@@ -85,7 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await SecureStore.setItemAsync(KEY, t)
       },
       loginWithGoogle: async () => {
-        const body = await api<{ user: User; token?: string; created?: boolean }>('/api/auth/google/app', { method: 'POST', body: await googleSignIn() })
+        // Android installs use Google's own sheet; anywhere that isn't available, the browser sign-in does the same job.
+        const native = await nativeGoogleSignIn()
+        const body = native
+          ? await api<{ user: User; token?: string; created?: boolean }>('/api/auth/google/native', { method: 'POST', body: native })
+          : await api<{ user: User; token?: string; created?: boolean }>('/api/auth/google/app', { method: 'POST', body: await googleSignIn() })
         await finish(body)
         return { created: body.created === true }
       },

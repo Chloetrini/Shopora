@@ -57,3 +57,19 @@ export async function fetchGoogleProfile(code: string, verifier: string): Promis
   if (typeof p.sub !== 'string' || typeof p.email !== 'string') throw new Error('Google profile is missing sub or email')
   return { sub: p.sub, email: p.email, email_verified: p.email_verified === true, name: p.name }
 }
+
+/**
+ * Checks an ID token that the phone app got from Google's own sign-in sheet. Google verifies the signature and expiry;
+ * we then require that it was issued for OUR web client id (so a token made for another app is refused) and that the
+ * email is verified. Throws on any failure.
+ */
+export async function verifyGoogleIdToken(idToken: string): Promise<GoogleProfile> {
+  const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(idToken)}`, { cache: 'no-store' })
+  if (!res.ok) throw new Error(`Google rejected the ID token (${res.status})`)
+  const t = (await res.json()) as { aud?: string; iss?: string; exp?: string; sub?: string; email?: string; email_verified?: string | boolean; name?: string }
+  if (t.aud !== process.env.GOOGLE_CLIENT_ID) throw new Error('ID token was issued for a different client')
+  if (t.iss !== 'accounts.google.com' && t.iss !== 'https://accounts.google.com') throw new Error('ID token has the wrong issuer')
+  if (!t.exp || Number(t.exp) * 1000 < Date.now()) throw new Error('ID token has expired')
+  if (typeof t.sub !== 'string' || typeof t.email !== 'string') throw new Error('ID token is missing sub or email')
+  return { sub: t.sub, email: t.email, email_verified: t.email_verified === true || t.email_verified === 'true', name: t.name }
+}
