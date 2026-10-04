@@ -22,7 +22,8 @@
         "backgroundColor": "#0b6b63",
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2
     },
     "plugins": [
       "expo-secure-store",
