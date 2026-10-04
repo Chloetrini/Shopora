@@ -37,7 +37,11 @@ export function SiteFooter() {
       <div className="border-t border-border">
         <p className="mx-auto flex max-w-6xl flex-wrap justify-between gap-2 px-4 py-5 text-xs text-muted-foreground">
           <span>© {new Date().getFullYear()} {SITE.name}</span>
-          <span>Payments are processed by Paystack.</span>
+          <span className="flex flex-wrap gap-x-4">
+            <span>Payments are processed by Paystack.</span>
+            <Link href="/privacy" className="hover:text-foreground">Privacy policy</Link>
+            <Link href="/terms" className="hover:text-foreground">Terms of service</Link>
+          </span>
         </p>
       </div>
     </footer>
