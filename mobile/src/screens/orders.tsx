@@ -1,6 +1,7 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useCallback, useEffect, useState } from 'react'
+import { Ionicons } from '@expo/vector-icons'
 import { FlatList, Pressable, ScrollView, Text, View } from 'react-native'
 import { api } from '../api'
 import { useAuth } from '../auth'
@@ -9,10 +10,14 @@ import { formatMoney } from '../money'
 import type { RootStack } from '../navigation'
 import { payOrder } from '../payment'
 import { useTheme } from '../theme'
-import { isPaid, STATUS_LABEL, type OrderSummary, type OrderView } from '../types'
+import { STATUS_LABEL, TRACK_STEPS, type OrderSummary, type OrderView } from '../types'
 import { Button, Center, Field, Note } from '../ui'
 
 type Nav = NativeStackNavigationProp<RootStack>
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const pad = (n: number) => String(n).padStart(2, '0')
+/** "4 Oct 2026, 08:42 UTC", same as the website's tracking page. */
+const whenUtc = (iso: string) => { const d = new Date(iso); return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}, ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())} UTC` }
 const when = (iso: string) => new Date(iso).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' })
 
 export function OrdersScreen() {
@@ -81,29 +86,50 @@ export function OrderScreen({ route }: { route: { params: RootStack['Order'] } }
   }
 
   if (!order) return <Center><Note text={error || 'Loading…'} error={!!error} /></Center>
+  const paid = order.status !== 'pending' && order.status !== 'cancelled'
+  const title = order.status === 'pending' ? 'Your order is saved' : order.status === 'delivered' ? 'Delivered' : paid ? 'Thank you, we’ve got it' : 'Order cancelled'
+  const current = order.status === 'cancelled' ? -1 : TRACK_STEPS.findIndex((x) => x.status === order.status)
+  const eventAt = (status: string) => order.events.find((e) => e.status === status)
   return (
     <ScrollView style={{ backgroundColor: c.background }} contentContainerStyle={{ padding: 16, gap: 14 }}>
       <View>
         <Text style={{ color: c.muted }}>Order {order.id.slice(0, 8)}</Text>
-        <Text style={{ color: c.foreground, fontSize: 24, fontWeight: '700' }}>{STATUS_LABEL[order.status] ?? order.status}</Text>
-        <Text style={{ color: c.muted }}>We’ll email {order.email} as it moves.</Text>
+        <Text style={{ color: c.foreground, fontSize: 28, fontWeight: '700', marginTop: 4 }}>{title}</Text>
+        <Text style={{ color: c.muted, lineHeight: 21, marginTop: 6 }}>{STATUS_LABEL[order.status] ?? order.status}. We’ll email {order.email} as it moves.</Text>
       </View>
-      {order.status === 'pending' && <Button label="Pay now" onPress={pay} busy={busy} />}
+      {order.status === 'pending' && <Button label={error ? 'Try payment again' : 'Pay now'} onPress={pay} busy={busy} />}
       {error ? <Note text={error} error /> : null}
 
-      <Card title="Progress">
-        {order.events.map((e, i) => (
-          <View key={i} style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: isPaid(e.status) || i === 0 ? c.primary : c.border, marginTop: 5 }} />
-            <View style={{ flex: 1 }}>
-              <Text style={{ color: c.foreground }}>{STATUS_LABEL[e.status] ?? e.status}</Text>
-              <Text style={{ color: c.muted, fontSize: 12 }}>{when(e.createdAt)}{e.note ? `, ${e.note}` : ''}</Text>
-            </View>
-          </View>
-        ))}
-      </Card>
+      <Text style={{ color: c.foreground, fontSize: 20, fontWeight: '700', marginTop: 6 }}>Tracking</Text>
+      <View style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 18 }}>
+        {order.status === 'cancelled' ? (
+          <Text style={{ color: c.foreground, lineHeight: 21 }}>This order was cancelled. If you paid, a refund will be arranged and you will be emailed.</Text>
+        ) : (
+          <>
+            {TRACK_STEPS.map((step, i) => {
+              const done = i <= current
+              const ev = eventAt(step.status)
+              const last = i === TRACK_STEPS.length - 1
+              return (
+                <View key={step.status} style={{ flexDirection: 'row', gap: 14, paddingBottom: last ? 0 : 24 }}>
+                  {!last && <View style={{ position: 'absolute', left: 13, top: 30, bottom: 0, width: 2, backgroundColor: i < current ? c.primary : c.border }} />}
+                  <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 2, alignItems: 'center', justifyContent: 'center', borderColor: done ? c.primary : c.border, backgroundColor: done ? c.primary : c.surface }}>
+                    {done ? <Ionicons name="checkmark" size={16} color={c.primaryForeground} /> : <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: c.border }} />}
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ color: done ? c.foreground : c.muted, fontSize: 16, fontWeight: '500' }}>{step.label}</Text>
+                    <Text style={{ color: c.muted, marginTop: 2 }}>{ev ? whenUtc(ev.createdAt) : i === current + 1 ? 'Next' : step.hint}</Text>
+                    {ev?.note ? <Text style={{ color: c.foreground, marginTop: 4 }}>{ev.note}</Text> : null}
+                  </View>
+                </View>
+              )
+            })}
+            {current < 0 && <Text style={{ color: c.muted, marginTop: 16 }}>{STATUS_LABEL[order.status] ?? order.status}. Tracking starts once payment is received.</Text>}
+          </>
+        )}
+      </View>
 
-      <Card title="Items">
+      <Card title="Summary">
         {order.items.map((i, k) => (
           <View key={k} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
             <Text style={{ color: c.foreground, flex: 1 }}>{i.quantity} × {i.name}</Text>

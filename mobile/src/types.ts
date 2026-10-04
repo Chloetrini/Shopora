@@ -27,10 +27,19 @@ export type Address = {
 }
 
 export const STATUS_LABEL: Record<string, string> = {
-  pending: 'Waiting for payment', confirmed: 'Payment received', processing: 'Preparing your order',
+  pending: 'Awaiting payment', confirmed: 'Payment received', processing: 'Preparing your order',
   shipped: 'Shipped', out_for_delivery: 'Out for delivery', delivered: 'Delivered', cancelled: 'Cancelled',
 }
 export const isPaid = (status: string) => status !== 'pending' && status !== 'cancelled'
+
+/** The journey shown when tracking an order, in order (same steps and wording as the website). "confirmed" = payment received. */
+export const TRACK_STEPS: { status: string; label: string; hint: string }[] = [
+  { status: 'confirmed', label: 'Payment received', hint: 'We have your payment.' },
+  { status: 'processing', label: 'Preparing your order', hint: 'We are packing your items.' },
+  { status: 'shipped', label: 'Shipped', hint: 'Your order has left us.' },
+  { status: 'out_for_delivery', label: 'Out for delivery', hint: 'It is on its way to you today.' },
+  { status: 'delivered', label: 'Delivered', hint: 'Enjoy!' },
+]
 
 export type AdminOrder = {
   id: string; email: string; fullName: string; status: string; totalCents: number; currency: string
