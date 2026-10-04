@@ -9,7 +9,7 @@ HNG15 Internship, Lesson 2 (shop website) and Lesson 3 (mobile app).
 | Live website | https://www.shopora.website |
 | Code (website and app) | https://github.com/Chloetrini/Shopora, branch `chloe/milestone-1-foundation` (the default branch) (the website lives in the repo root, the phone app in `mobile/`) |
 | Android app (install this) | https://github.com/Chloetrini/Shopora/releases/tag/v1.0.0 (download the `.apk` under Assets; direct link: https://github.com/Chloetrini/Shopora/releases/download/v1.0.0/application-8145e3f8-c0a0-407f-919f-3cf34bfd9dc8.apk). It is on a permanent GitHub Release, and it loads newer app updates by itself, so nobody needs to reinstall |
-| Video demonstration | VIDEO LINK (one continuous recording on a physical phone: sign in on the website, add an item, log in to the app with the same account, the item is in the app cart, add another item in the app, it appears in the website cart) |
+| Video demonstration | https://drive.google.com/file/d/1qLqYqB6-7VrsdsDtIqoi22X3AbHN7lCM/view?usp=drive_link (one continuous recording on a physical phone: sign in on the website, add an item, log in to the app with the same account, the item is in the app cart, add another item in the app, it appears in the website cart) |
 | Try the website on any phone | Open https://www.shopora.website and tap Add to Home Screen (Safari on iPhone, Install app in Chrome on Android). On a phone it then looks like the app. Same account and cart |
 | Spec and rules | `AGENTS.md` in the repo |
 
