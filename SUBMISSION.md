@@ -8,7 +8,7 @@ HNG15 Internship, Lesson 2 (shop website) and Lesson 3 (mobile app).
 |---|---|
 | Live website | https://www.shopora.website |
 | Code (website and app) | https://github.com/Chloetrini/Shopora, branch `chloe/milestone-1-foundation` (the default branch) (the website lives in the repo root, the phone app in `mobile/`) |
-| Android app (install this) | https://github.com/Chloetrini/Shopora/releases/tag/v1.0.0 (download the `.apk` under Assets; direct link: https://github.com/Chloetrini/Shopora/releases/download/v1.0.0/application-45775c81-b129-4ce4-af93-99422f2fec57.1.apk). It is on a permanent GitHub Release, and it loads newer app updates by itself, so nobody needs to reinstall |
+| Android app (install this) | https://github.com/Chloetrini/Shopora/releases/tag/v1.0.0 (download the `.apk` under Assets; direct link: https://github.com/Chloetrini/Shopora/releases/download/v1.0.0/application-8145e3f8-c0a0-407f-919f-3cf34bfd9dc8.apk). It is on a permanent GitHub Release, and it loads newer app updates by itself, so nobody needs to reinstall |
 | Video demonstration | VIDEO LINK (one continuous recording on a physical phone: sign in on the website, add an item, log in to the app with the same account, the item is in the app cart, add another item in the app, it appears in the website cart) |
 | Try the website on any phone | Open https://www.shopora.website and tap Add to Home Screen (Safari on iPhone, Install app in Chrome on Android). On a phone it then looks like the app. Same account and cart |
 | Spec and rules | `AGENTS.md` in the repo |
@@ -46,7 +46,7 @@ wishlist, reviews, saved addresses, back-in-stock alerts, profile with photo, fo
 |---|---|---|
 | A mobile app of the shop website | Yes | Expo / React Native app in `mobile/` |
 | Uses the same API endpoints | Yes | Same `/api/...` routes; the only addition is a login token for the app, sent as `Authorization: Bearer ...` |
-| A user logs in on both | Yes | Same account on web and phone; email and password, or Continue with Google (secure browser sheet + one-time code) |
+| A user logs in on both | Yes | Same account on web and phone; email and password, or Continue with Google (Google's own account sheet on Android; a secure browser sheet plus one-time code elsewhere) |
 | Adding to the cart on the web shows instantly on mobile | Yes | The cart lives on the server, tied to the account; each client re-reads it every 2 seconds and whenever it is opened |
 | Tested on a phone | Yes | Expo Go on an iPhone, and an installable Android app (APK) on an Android phone |
 
