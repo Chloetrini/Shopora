@@ -30,13 +30,14 @@ export function OrdersScreen() {
   if (!user) return <Center><Note text="Log in to see your orders." /><View style={{ gap: 10, width: '100%', maxWidth: 320 }}><Button label="Log in" onPress={() => nav.navigate('Login', { mode: 'login' })} /><Button label="Track an order" variant="outline" onPress={() => nav.navigate('Track')} /></View></Center>
   if (error) return <Center><Note text={error} error /></Center>
   if (!orders) return <Center><Note text="Loading your orders…" /></Center>
-  if (orders.length === 0) return <Center><Note text="No orders yet. When you place one it shows up here." /></Center>
+  if (orders.length === 0) return <Center><Note text="No orders yet. When you place one it shows up here." /><View style={{ width: '100%', maxWidth: 320 }}><Button label="Track an order" variant="outline" onPress={() => nav.navigate('Track')} /></View></Center>
   return (
     <FlatList
       style={{ backgroundColor: c.background }}
       data={orders}
       keyExtractor={(o) => o.id}
       contentContainerStyle={{ padding: 12, gap: 10 }}
+      ListHeaderComponent={<Button label="Track an order" variant="outline" onPress={() => nav.navigate('Track')} />}
       renderItem={({ item: o }) => (
         <Pressable onPress={() => nav.navigate('Order', { id: o.id })} style={{ backgroundColor: c.surface, borderRadius: 8, borderWidth: 1, borderColor: c.border, padding: 14, gap: 4 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>

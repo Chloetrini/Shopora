@@ -45,6 +45,7 @@ export function AccountScreen() {
         </View>
       </View>
       <Button label="Edit profile" onPress={() => nav.navigate('Profile')} />
+      <Button label="Track an order" variant="outline" onPress={() => nav.navigate('Track')} />
       <AppearanceRow />
       <AppVersion />
       <Button label="Log out" variant="outline" onPress={logout} />
